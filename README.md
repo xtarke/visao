@@ -12,7 +12,7 @@ Leitura documentação
  - Verificar:
    - http://www.vlfeat.org/index.html
    - http://www.petercorke.com/RVC/top/toolboxes/
-   - 
+   - http://mccormickml.com/2014/01/10/stereo-vision-tutorial-part-i/ 
    
 Dicas Fábio:
 
