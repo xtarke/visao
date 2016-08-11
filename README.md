@@ -14,6 +14,7 @@ Leitura documentação
    - http://www.petercorke.com/RVC/top/toolboxes/
    - http://mccormickml.com/2014/01/10/stereo-vision-tutorial-part-i/
    - http://www.peterkovesi.com/matlabfns/
+   - http://www.petercorke.com/Machine_Vision_Toolbox.html
    
 Dicas Fábio:
 
