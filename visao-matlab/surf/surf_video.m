@@ -26,26 +26,58 @@ detectionImagePoints = detectSURFFeatures(detectionImage);
 
 count = 0;
 
-while (count < 100)
+while (count < 200)
     frame = getsnapshot(vid);
         
     scenePoints = detectSURFFeatures(frame);  
      
-    [sceneFeatures, scenePoints] = extractFeatures(sceneImage, scenePoints);
+    [sceneFeatures, scenePoints] = extractFeatures(frame, scenePoints);    
+    
     detectionImagePairs = matchFeatures(detectionImageFeatures, sceneFeatures);
     
-    
-    matchedimagePoints = wheelPoints(detectionImagePairs(:, 1), :);
+    matchedImagePoints = detectionImagePoints(detectionImagePairs(:, 1), :);
     matchedScenePoints = scenePoints(detectionImagePairs(:, 2), :);
-    figure;
-    showMatchedFeatures(detectionImage, sceneImage, matchedwheelPoints, ...
-      matchedScenePoints, 'montage');
-    title('Putatively Matched Points (Including Outliers)');
+    
+    [tform, inlierImagePoints, inlierScenePoints, status] = ...
+    estimateGeometricTransform(matchedImagePoints, matchedScenePoints, 'affine');
 
 
+   % if (mod(count,10) == 0)    
+        % imshow(frame); hold on;
+        % plot(selectStrongest(scenePoints, 300)); hold on
+        
+        if (status == 0)
+            disp('Ok');
+            
+%             Polygon = [1, 1;...                           % top-left
+%             size(detectionImage, 2), 1;...                 % top-right
+%             size(detectionImage, 2), size(detectionImage, 1);... % bottom-right
+%             1, size(detectionImage, 1);...                 % bottom-left
+%             1, 1];                          % top-left again to close the polygon
+        
+%             imagePolygon = transformPointsForward(tform, Polygon);
+            
+            % figure;
+            % imshow(frame);
+            % hold on;
+            %line(imagePolygon(:, 1), imagePolygon(:, 2), 'Color', 'r');
+            %hold on
+            imshow(frame); hold on;
+            plot(selectStrongest(scenePoints, 300)); hold on
+            
+        end
+        
+%         figure;
+%         hold on
+%         showMatchedFeatures(detectionImage, frame, detectionImagePairs, ...
+%         matchedScenePoints, 'montage');
+%         hold on
+        
+    %nd
+
     
-    
-    
+  
+   
     % videoPlayer.step(frame);
 
     count = count + 1;

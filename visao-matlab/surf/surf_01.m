@@ -1,6 +1,6 @@
 
 % Load image
-wheelImage = (rgb2gray(imread('fone.png')));
+wheelImage = (rgb2gray(imread('roda.png')));
 % wheelImage = imrotate(wheelImage,20);
 
 % figure;
@@ -8,7 +8,7 @@ wheelImage = (rgb2gray(imread('fone.png')));
 % title('Image of a Wheel');
 
 % Load scene
-sceneImage = (rgb2gray(imread('caneta-total.jpg')));
+sceneImage = (rgb2gray(imread('duke390-2.jpg')));
 % figure;
 % imshow(sceneImage);
 % title('Image of a Cluttered Scene');
