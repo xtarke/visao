@@ -6,8 +6,9 @@ if (vlfeat_ver == 0)
 end
 
 % load images
-I = imread('duke390-2.jpg');
-J = imread('roda.png');
+I = imread('caneta-total.jpg');
+J = imread('teclado.png');
+J = imrotate(J,90);
 
 I = single(rgb2gray(I)); % Conversion to single is recommended
 J = single(rgb2gray(J)); % in the documentation
