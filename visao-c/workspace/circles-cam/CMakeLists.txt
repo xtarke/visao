@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( circles-cam )
+find_package( OpenCV REQUIRED )
+add_executable( circles-cam ./src/circles-cam.cpp )
+target_link_libraries( circles-cam ${OpenCV_LIBS} ) 
