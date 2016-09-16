@@ -3,10 +3,10 @@ vidEsq = videoinput('linuxvideo', 2, 'BGR24_640x480');
 %src = getselectedsource(vidDir);
 
 vidDir.FramesPerTrigger = 20;
-vidDir.ReturnedColorspace = 'grayscale';
+vidDir.ReturnedColorspace = 'rgb';
 
 vidEsq.FramesPerTrigger = 20;
-vidEsq.ReturnedColorspace = 'grayscale';
+vidEsq.ReturnedColorspace = 'rgb';
 
 triggerconfig(vidDir, 'manual');
 triggerconfig(vidEsq, 'manual');
@@ -31,7 +31,7 @@ count = 0;
 imageName = 'test';
 tic;
 position = [10, 10];
-while (count<20)
+while (count<15)
     frameDir = getsnapshot(vidDir);
     frameEsq = getsnapshot(vidEsq);
      
@@ -40,10 +40,10 @@ while (count<20)
 %     end
     
     strCount = num2str(count);
-    if toc > 4.0
+    if toc > 3.0
         tic;
-        imwrite(frameDir, strcat(imageName, 'Dir', strCount), 'png');
-        imwrite(frameEsq, strcat(imageName, 'Esq', strCount), 'png');
+        imwrite(frameDir, strcat(imageName, 'SemObjeto', strCount), 'png');
+        %imwrite(frameEsq, strcat(imageName, 'Acq_', strCount), 'png');
         count = count + 1;
     end
     
