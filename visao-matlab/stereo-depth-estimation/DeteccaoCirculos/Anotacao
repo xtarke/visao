@@ -1,0 +1,47 @@
+http://www.mathworks.com/help/images/examples/detect-and-measure-circular-objects-in-an-image.html
+Okay, eu consigo detectar circunferências, tendo o raio e a posição delas. Porém eu preciso de uma imagem "limpa" onde existe uma clara diferença entre o fundo e o objeto, também tenho que ter uma estimativa do seu raio, e por fim talvez seja necessário controlar o que o algoritmo enxerga como borda.
+Além disso tudo, isso não me ajuda a estimar a distância do objeto, só me diz onde o mesmo se localiza no espaço 2D. Ainda não sei como relacionar isso com o espaço 3D.
+
+
+
+Acredito ser necessário incrementar essa identificação com o código no site:
+http://www.mathworks.com/help/vision/examples/depth-estimation-from-stereo-video.html
+Que faz a medida da distância até a pessoa, porém agora meu objeto não é a pessoa mas sim uma circunferência.
+
+O bloco responsável pela medida da pessoa provavelmente é:
+
+------------------------------------------------------------------------------------------------
+% Create the people detector object. Limit the minimum object size for
+% speed.
+peopleDetector = vision.PeopleDetector('MinSize', [166 83]);
+
+% Detect people.
+bboxes = peopleDetector.step(frameLeftGray);
+
+% Find the centroids of detected people.
+centroids = [round(bboxes(:, 1) + bboxes(:, 3) / 2), ...
+    round(bboxes(:, 2) + bboxes(:, 4) / 2)];
+
+% Find the 3-D world coordinates of the centroids.
+centroidsIdx = sub2ind(size(disparityMap), centroids(:, 2), centroids(:, 1));
+X = points3D(:, :, 1);
+Y = points3D(:, :, 2);
+Z = points3D(:, :, 3);
+centroids3D = [X(centroidsIdx)'; Y(centroidsIdx)'; Z(centroidsIdx)'];
+
+% Find the distances from the camera in meters.
+dists = sqrt(sum(centroids3D .^ 2));
+
+% Display the detected people and their distances.
+labels = cell(1, numel(dists));
+for i = 1:numel(dists)
+    labels{i} = sprintf('%0.2f meters', dists(i));
+end
+figure;
+imshow(insertObjectAnnotation(frameLeftRect, 'rectangle', bboxes, labels));
+title('Detected People');
+------------------------------------------------------------------------------------------------
+
+A primeira parte é responsável por detectar a pessoa, depois é utilizado o bboxes para localização.
+O que bboxes faz é dar os pontos que são os vértices da pessoa encontrada.
+Logo ao invés de centroids dos boxes o que pode ser utilizado é o centro da circunferência encontrada.
