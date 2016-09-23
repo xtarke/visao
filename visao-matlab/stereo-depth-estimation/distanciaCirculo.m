@@ -3,14 +3,14 @@
 % 'testeCirculoQuadro.m' que encontra um circulo em uma imagem
 
 % Load the stereoParameters object.
-load('calib_01_Acq02.mat');
+%load('calib_01_Acq02.mat');
 
 % Visualize camera extrinsics.
 showExtrinsics(stereoParams);
 
 % Começa carregando as imagens
-frameRight = imread('testDir0');
-frameLeft = imread('testEsq0');
+frameRight = imread('testAcq_Dir21');
+frameLeft = imread('testAcq_Esq21');
 
 % Retifica as imagens e mostra para estimar visualmente a qualidade do resultado
 [frameLeftRect, frameRightRect] = rectifyStereoImages(frameLeft, frameRight, stereoParams);
@@ -28,15 +28,16 @@ points3D = reconstructScene(disparityMap, stereoParams);
 
 % Convert to meters OBS: Não sei exatamente se essa é a relação correta de
 % pixels para metros, nem sei como o exemplo chegou nesse valor.
-points3D = points3D ./ 1000;
+% points3D = points3D ./ 1000;
 
 
 % Detecta os centros e raio do circulo na imagem da esquerda.
-[centers, radii] = imfindcircles(frameLeftRect, [30, 40], 'ObjectPolarity', 'dark', 'Sensitivity', 0.9);
-%disp(centers);
-%disp(radii);
-%imshow(frameLeftRect);
-%h = viscircles(centers,radii);
+[centers, radii] = imfindcircles(frameLeftRect, [55, 65], 'ObjectPolarity', 'dark', 'Sensitivity', 0.9);
+disp(centers);
+disp(radii);
+imshow(frameLeftRect);
+d = imdistline
+h = viscircles(centers,radii);
 
 
 % Pega os 'centroids' o circulo
@@ -51,7 +52,7 @@ Z = points3D(:, :, 3);
 centroids3D = [X(centroidsIdx)'; Y(centroidsIdx)'; Z(centroidsIdx)'];
 
 % Find the distances from the camera in meters.
-dists = sqrt(sum(centroids3D .^ 2));
+dists = sqrt(sum(centroids3D .^ 2))/1000;
 
 % Display the detected people and their distances.
 labels = cell(1, numel(dists));

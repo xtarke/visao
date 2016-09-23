@@ -1,5 +1,5 @@
-vidDir = videoinput('linuxvideo', 1, 'BGR24_640x480');
-vidEsq = videoinput('linuxvideo', 2, 'BGR24_640x480');
+vidDir = videoinput('linuxvideo', 2, 'BGR24_640x480');
+vidEsq = videoinput('linuxvideo', 1, 'BGR24_640x480');
 %src = getselectedsource(vidDir);
 
 vidDir.FramesPerTrigger = 20;
@@ -31,7 +31,7 @@ count = 0;
 imageName = 'test';
 tic;
 position = [10, 10];
-while (count<15)
+while (count<30)
     frameDir = getsnapshot(vidDir);
     frameEsq = getsnapshot(vidEsq);
      
@@ -40,10 +40,10 @@ while (count<15)
 %     end
     
     strCount = num2str(count);
-    if toc > 3.0
+    if toc > 5.0
         tic;
-        imwrite(frameDir, strcat(imageName, 'SemObjeto', strCount), 'png');
-        %imwrite(frameEsq, strcat(imageName, 'Acq_', strCount), 'png');
+        imwrite(frameDir, strcat(imageName, 'Acq_Dir', strCount), 'png');
+        imwrite(frameEsq, strcat(imageName, 'Acq_Esq', strCount), 'png');
         count = count + 1;
     end
     
@@ -56,7 +56,6 @@ while (count<15)
     videoPlayerEsq.step(frameEsq);
 
 end
-
 
 stop(vidDir);
 stop(vidEsq);
