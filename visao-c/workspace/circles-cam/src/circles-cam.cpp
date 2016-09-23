@@ -11,8 +11,9 @@ using namespace cv;
 int main(int argc, char** argv)
 {
     VideoCapture cap(1); // open the default camera
+   
     if(!cap.isOpened())  // check if we succeeded
-    return -1;
+        return -1;
 
     Mat frame;
     Mat gray_mat;
