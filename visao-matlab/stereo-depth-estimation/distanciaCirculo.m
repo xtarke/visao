@@ -3,10 +3,10 @@
 % 'testeCirculoQuadro.m' que encontra um circulo em uma imagem
 
 % Load the stereoParameters object.
-load('calib_01_Acq02.mat');
+% load('calib_01_Acq02.mat');
 
 % Visualize camera extrinsics.
-showExtrinsics(stereoParams);
+% showExtrinsics(stereoParams);
 
 % Começa carregando as imagens
 frameRight = imread('testDir0');
@@ -28,7 +28,7 @@ points3D = reconstructScene(disparityMap, stereoParams);
 
 % Convert to meters OBS: Não sei exatamente se essa é a relação correta de
 % pixels para metros, nem sei como o exemplo chegou nesse valor.
-points3D = points3D ./ 1000;
+points3D = points3D; % ./ 1000;
 
 
 % Detecta os centros e raio do circulo na imagem da esquerda.
@@ -44,7 +44,7 @@ centroids = [round(centers(1)), round(centers(2))];
 
 % A partir daqui a parte "nebulosa"
 % Find the 3-D world coordinates of the centroids.
-centroidsIdx = sub2ind(size(disparityMap), centroids(:, 2), centroids(:, 1));
+centroidsIdx = sub2ind(size(disparityMap), centroids(:, 1), centroids(:, 2));
 X = points3D(:, :, 1);
 Y = points3D(:, :, 2);
 Z = points3D(:, :, 3);

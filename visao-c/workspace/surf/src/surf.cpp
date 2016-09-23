@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
 
     std::string outpath = "teste.jpg";
 
-    std::string leftName = "teclado.png";
+    std::string leftName = "Frame_0.png";
     imread(leftName, IMREAD_GRAYSCALE).copyTo(img1);
     
     if(img1.empty())
@@ -171,10 +171,10 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    std::string rightName = "webcam.jpg";
+    std::string rightName = "Frame_5.png";
     imread(rightName, IMREAD_GRAYSCALE).copyTo(img2);
     
-    img2.ro
+    //
     
     if(img2.empty())
     {
