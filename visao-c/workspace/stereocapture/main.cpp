@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
                 String s = ss.str();
                 
                 String frame_left("Frame_l_");
-                String frame_right("Fame_r_");
+                String frame_right("Frame_r_");
               
                 frame_left += s + ".png";
                 frame_right += s + ".png";
