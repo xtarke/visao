@@ -15,16 +15,21 @@ private:
     int frame_width;
     int frame_height;
     
+    int leftCamIndex;
+    int rightCamIndex;
+    
     Mat left_Frame;
     Mat right_Frame;
     
 public:
     
     StereoCapture (int leftCamIndex, int rightCamIndex, int _frame_width, int _frame_height);
+    StereoCapture (int leftCamIndex, int rightCamIndex);
     ~StereoCapture();
     
     void capture();
     void stop_cam();
+    void start_cam();
     
     Mat get_left_Frame() {return left_Frame;}
     Mat get_right_Frame() {return right_Frame;}   

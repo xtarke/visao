@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "StereoCapture.h"
+#include "StereoVision.h"
 
 
 int main(int argc, char **argv) {
@@ -13,7 +14,16 @@ int main(int argc, char **argv) {
     String args_1(argv[1]);
     String args_2(argv[2]);
     
-    StereoCapture capture (stoi(args_1), stoi(args_2),1280, 720);
+    StereoCapture capture (stoi(args_1), stoi(args_2),640, 480);
+    //StereoCapture capture (stoi(args_1), stoi(args_2));       
+    
+    
+    capture.capture();
+    
+     
+    StereoVision vision;
+    
+    vision.calibrate(capture);
     
     
     std::cout << "Hello, world!" << std::endl;

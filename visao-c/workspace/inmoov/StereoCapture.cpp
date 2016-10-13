@@ -2,10 +2,10 @@
 
 
 
-StereoCapture::StereoCapture (int leftCamIndex, int rightCamIndex, int _frame_width, int _frame_height)
+StereoCapture::StereoCapture (int _leftCamIndex, int _rightCamIndex, int _frame_width, int _frame_height)
 {
-    left_Cam.open(leftCamIndex);
-    rigth_Cam.open(rightCamIndex);
+    left_Cam.open(_leftCamIndex);
+    rigth_Cam.open(_rightCamIndex);
     
     if(!left_Cam.isOpened() || !rigth_Cam.isOpened()) {
         cerr << "StereoCapture: could not open both cameras" << endl;
@@ -21,6 +21,23 @@ StereoCapture::StereoCapture (int leftCamIndex, int rightCamIndex, int _frame_wi
     frame_height = _frame_height;
     frame_width = _frame_width;   
     
+    rightCamIndex = _rightCamIndex;
+    leftCamIndex = _leftCamIndex;
+    
+}
+
+StereoCapture::StereoCapture (int leftCamIndex, int rightCamIndex)
+{
+    left_Cam.open(leftCamIndex);
+    rigth_Cam.open(rightCamIndex);
+    
+    if(!left_Cam.isOpened() || !rigth_Cam.isOpened()) {
+        cerr << "StereoCapture: could not open both cameras" << endl;
+        exit(EXIT_FAILURE);
+    }
+        
+    frame_height = left_Cam.get(CV_CAP_PROP_FRAME_HEIGHT);
+    frame_width = rigth_Cam.get(CV_CAP_PROP_FRAME_WIDTH);    
 }
 
 StereoCapture::~StereoCapture(){
@@ -40,3 +57,21 @@ void StereoCapture::capture()
     rigth_Cam >> right_Frame;     
 }
 
+void StereoCapture::start_cam() 
+{
+    left_Cam.open(leftCamIndex);
+    rigth_Cam.open(rightCamIndex);
+    
+    if(!left_Cam.isOpened() || !rigth_Cam.isOpened()) {
+        cerr << "StereoCapture: could not reopen both cameras" << endl;
+        exit(EXIT_FAILURE);
+    }
+        
+    
+    left_Cam.set(CV_CAP_PROP_FRAME_WIDTH,frame_width);
+    left_Cam.set(CV_CAP_PROP_FRAME_HEIGHT,frame_height);
+    rigth_Cam.set(CV_CAP_PROP_FRAME_WIDTH,frame_width);
+    rigth_Cam.set(CV_CAP_PROP_FRAME_HEIGHT,frame_height);    
+       
+   
+}
