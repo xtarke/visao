@@ -13,8 +13,7 @@ int main(int argc, char **argv) {
     int frames = 0;
     VideoCapture camera_1;
     VideoCapture camera_2;
-    
-    
+        
     if (argc < 3) {
         cerr << "Insuficient parameters: capture <integer::cam_id> <integer::cam_id>" << endl;
         exit(EXIT_FAILURE);
