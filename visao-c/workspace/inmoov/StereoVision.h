@@ -17,8 +17,8 @@ class StereoVision
     CvMat* _Q;			//reprojection matrix
     CvMat* _CamData;
 
-    CvSize imageSize;	//size of input images 
-    IplImage	*img1,	//left image
+    IplImage	
+            *img1,	//left image
             *img2,	//right image
             *rgb,
             *thres_img,
@@ -26,11 +26,11 @@ class StereoVision
             *img_detect,
             *real_disparity;
     CvMat	*img1r,		//rectified left image
-                    *img2r,		//rectified right image
-                    *disp,		//disparity map
-                    *vdisp,		//scaled disparity map for viewing
-                    *pair,
-                    *depthM;
+            *img2r,		//rectified right image
+            *disp,		//disparity map
+            *vdisp,		//scaled disparity map for viewing
+            *pair,
+            *depthM;
                     
     int stereoPreFilterSize, 
 		stereoPreFilterCap,  
@@ -42,6 +42,9 @@ class StereoVision
 		stereoSaveOriginal;
     
     int threshold, blobArea;
+    
+private:
+    //Size imageSize;	//size of input images   //http://docs.opencv.org/3.1.0/d6/d50/classcv_1_1Size__.html#ae09ae11fd75a16928ca40980ad46a9bf
                     
 public:
     
@@ -49,6 +52,7 @@ public:
     ~StereoVision();
     
     void calibrate(StereoCapture &capture);
+    void calibrate_cpp(StereoCapture &capture);
     void load_correlation(string FileName);
                     
     

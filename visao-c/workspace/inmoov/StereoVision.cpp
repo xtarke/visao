@@ -14,8 +14,32 @@ StereoVision::~StereoVision(){
     
 }
 
-
-
+void calibrate_cpp(StereoCapture &capture){
+    
+    // A função irá calibrar pegando uma série de frames da camera? Ou irá pegar de uma lista/vetor os frames para fazer a calibração?
+    
+    
+    // Captura os frames da camera (Ou pega a lista de frames?)
+    capture.capture();
+    
+    // Pega o frame da esquerda
+    Mat frameLeft(capture.get_left_Frame());      // Os () estão sobrecarregados para funcionarem como um igual?
+    //IplImage* gray_fr1 = cvCreateImage( frame1.imageSize, 8, 1 );
+    // 8 é Pixel depth in bits: IPL_DEPTH_8U, IPL_DEPTH_8S, IPL_DEPTH_16S, IPL_DEPTH_32S, IPL_DEPTH_32F and IPL_DEPTH_64F are supported. 
+    // Channels é o numero de cores(?)
+    Mat grayFrameLeft(frameLeft.size(), CV_8SC1); // Não encontrei um inicializador no Mat que seja idêntico ao do IplImage, mas essa forma parece ser suficiente. Não tenho certeza quando ao formato do type. http://docs.opencv.org/3.1.0/d3/d63/classcv_1_1Mat.html#a75a97b1e4e55f380c172af58048a7cde
+    
+    Mat frameRight(capture.get_right_Frame());
+    Mat grayFrameRight(frameRight.size(), CV_8SC1);
+    
+    
+    // Local onde gray_fr é utilizado
+    cvtColor( frameLeft, grayFrameLeft, CV_BGR2GRAY ); // http://docs.opencv.org/3.1.0/d7/d1b/group__imgproc__misc.html#ga397ae87e1288a81d2363b61574eb8cab
+    
+    Size imageSize(frameLeft.size());
+    
+    
+}
 
 
 void StereoVision::calibrate(StereoCapture &capture){
@@ -63,7 +87,7 @@ void StereoVision::calibrate(StereoCapture &capture){
     //IplImage* gray_fr1 = cvCreateImage( cvGetSize(frame1), 8, 1 );
     
     IplImage frame1(capture.get_left_Frame());
-    IplImage* gray_fr1 = cvCreateImage( cvGetSize(&frame1), 8, 1 );
+    IplImage* gray_fr1 = cvCreateImage( frame1.imageSize, 8, 1 );
     
         
     // IplImage *frame2 = grabb->imageRight;
@@ -221,6 +245,13 @@ void StereoVision::calibrate(StereoCapture &capture){
     cvSave("./CalibFile/my2.yml",my2calib);
    
 }
+
+
+
+
+
+
+
 
 void StereoVision::load_correlation(string FileName)
 {
