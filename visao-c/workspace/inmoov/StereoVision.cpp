@@ -1,6 +1,8 @@
 #include "StereoVision.h"
 
 #include "opencv2/opencv.hpp"
+#include <iostream>  
+#include <fstream>
 
 
 StereoVision::StereoVision(){
@@ -218,4 +220,58 @@ void StereoVision::calibrate(StereoCapture &capture){
     cvSave("./CalibFile/mx2.yml",mx2calib);
     cvSave("./CalibFile/my2.yml",my2calib);
    
+}
+
+void StereoVision::load_correlation(string FileName)
+{
+    std::ifstream P_File;
+        
+    P_File.open(FileName);
+    
+    if (!P_File) {
+        cerr << "load_correlation: Unable to open file Correlation file!" << endl;;
+	cerr << "Loading defaults";
+        
+        stereoDispWindowSize = 33;        
+        stereoDispTextureThreshold = 20;        
+        stereoDispUniquenessRatio = 15;        
+        stereoNumDisparities = 48;	
+	threshold = 29;	
+	blobArea = 1500;
+	
+	stereoPreFilterSize = 63;    
+        stereoPreFilterCap = 63;
+        stereoSavePointCloudValue = 0;
+    }       
+    else{
+        string temp; 
+        int value; 
+        while(P_File >> temp)
+        {
+            P_File >> value;
+            stereoDispWindowSize = value;
+            P_File >> temp;
+            P_File >> value;
+            stereoDispTextureThreshold = value;
+            P_File>>temp;
+            P_File>>value;
+            stereoDispUniquenessRatio = value;
+            P_File >> temp;
+            P_File >> value;
+            stereoNumDisparities = value;
+            P_File >> temp;
+            P_File >> value;
+            threshold = value;
+            P_File >> temp;
+            P_File >> value;
+            blobArea = value;
+        }
+        
+        stereoPreFilterSize = 63;
+        stereoPreFilterCap = 63; 
+        stereoSavePointCloudValue = 0; 
+//		stereoFunc->stereoSaveOriginal = 0;
+
+        P_File.close();
+	}
 }

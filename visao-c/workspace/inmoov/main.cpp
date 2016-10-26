@@ -20,12 +20,10 @@ int main(int argc, char **argv) {
     
     capture.capture();
     
-     
     StereoVision vision;
     
-    vision.calibrate(capture);
+    //vision.calibrate(capture);
     
     
-    std::cout << "Hello, world!" << std::endl;
     return 0;
 }

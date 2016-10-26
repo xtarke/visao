@@ -32,12 +32,24 @@ class StereoVision
                     *pair,
                     *depthM;
                     
+    int stereoPreFilterSize, 
+		stereoPreFilterCap,  
+		stereoDispWindowSize,
+		stereoNumDisparities,
+		stereoDispTextureThreshold,
+		stereoDispUniquenessRatio,
+		stereoSavePointCloudValue, 
+		stereoSaveOriginal;
+    
+    int threshold, blobArea;
+                    
 public:
     
     StereoVision();
     ~StereoVision();
     
     void calibrate(StereoCapture &capture);
+    void load_correlation(string FileName);
                     
     
 };
