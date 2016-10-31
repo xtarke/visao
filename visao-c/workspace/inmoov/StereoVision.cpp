@@ -14,7 +14,20 @@ StereoVision::~StereoVision(){
     
 }
 
-void calibrate_cpp(StereoCapture &capture){
+void StereoVision::calibrate_cpp(StereoCapture &capture){
+    // Variaveis locais? Migrar para o .h ??
+    int n_boards = 40; 
+    int successes1 = 0,successes2 = 0 ;
+    int frame = 0;
+    int resultLeft, resultRight;
+    int  nx=9, ny=6;
+    Size board_sz(nx,ny);
+    // Essas duas aqui eu modifiquei mas não sei direito como proceder.
+    int n = nx*ny;
+    vector<Point2f> tempLeft(n);   
+    vector<Point2f> tempRight(n);
+    //
+    
     
     // A função irá calibrar pegando uma série de frames da camera? Ou irá pegar de uma lista/vetor os frames para fazer a calibração?
     
@@ -32,11 +45,105 @@ void calibrate_cpp(StereoCapture &capture){
     Mat frameRight(capture.get_right_Frame());
     Mat grayFrameRight(frameRight.size(), CV_8SC1);
     
-    
-    // Local onde gray_fr é utilizado
-    cvtColor( frameLeft, grayFrameLeft, CV_BGR2GRAY ); // http://docs.opencv.org/3.1.0/d7/d1b/group__imgproc__misc.html#ga397ae87e1288a81d2363b61574eb8cab
-    
     Size imageSize(frameLeft.size());
+    
+    namedWindow("cameraRight", 1);  // http://docs.opencv.org/3.1.0/d7/dfc/group__highgui.html#ga5afdf8410934fd099df85c75b2e0888b
+    namedWindow("cameraLeft", 1);
+    namedWindow("corners cameraLeft", 1);
+    namedWindow("corners cameraRight", 1);
+    printf("\nWant to capture %d chessboards for calibrate:", n_boards);
+    
+//     //Thu anh chessboard ve cho viec calib camera
+//     cvNamedWindow( "camera2", 1 );
+//     cvNamedWindow( "camera1", 1 );
+//     cvNamedWindow("corners camera1",1);
+//     cvNamedWindow("corners camera2",1);	
+//     printf("\nWant to capture %d chessboards for calibrate:", n_boards);
+    
+    while((successes1<n_boards) || (successes2<n_boards)){
+        
+        // Find and Draw Chess
+        if( (frame++ % 20) == 0 ){  // Pq não simplesmente compara com 20? Pega 20 frames antes de entrar??
+            // Camera 1
+            resultLeft = findChessboardCorners(frameLeft, board_sz, tempLeft, (CV_CALIB_CB_ADAPTIVE_THRESH + CV_CALIB_CB_FILTER_QUADS) ); // http://docs.opencv.org/3.1.0/d9/d0c/group__calib3d.html#ga93efa9b0aa890de240ca32b11253dd4a       // Interessante olhar as flags!!! Coloquei qlqr uma.  http://docs.opencv.org/3.1.0/d9/d0c/group__calib3d.html#gga46db002545a3b6c1904b7a0a8694b66aa9e296b20df217b62e581c56ad9359db5  // O vetor de saída não parece correto
+            // Local onde gray_fr é utilizado
+            cvtColor( frameLeft, grayFrameLeft, CV_BGR2GRAY ); // http://docs.opencv.org/3.1.0/d7/d1b/group__imgproc__misc.html#ga397ae87e1288a81d2363b61574eb8cab
+            
+            // Não sei direito o que essa parte faz
+            cout << resultLeft << endl;
+            
+            // Camera 2
+            resultRight = findChessboardCorners(frameRight, board_sz, tempRight, (CV_CALIB_CB_ADAPTIVE_THRESH + CV_CALIB_CB_FILTER_QUADS) );
+            cvtColor( frameRight, grayFrameRight, CV_BGR2GRAY );
+            
+            cout << resultRight << endl;
+            
+            // Aqui count1 e count2 são o numero de corners encontraos, logo precisa puxar dos vector tempLeft e tempRight
+            if(tempLeft == n && count2 == n 
+            
+        }
+        
+    }
+    
+    while((successes1<n_boards)||(successes2<n_boards))						
+    {
+
+        //--------Find and Draw chessboard--------------------------------------------------	
+        if((frame++ % 20) == 0)
+        {
+            //----------------CAM1-------------------------------------------------------------------------------------------------------
+            result1 = cvFindChessboardCorners( &frame1, board_sz,&temp1[0], &count1,CV_CALIB_CB_ADAPTIVE_THRESH|CV_CALIB_CB_FILTER_QUADS);
+            cvCvtColor( &frame1, gray_fr1, CV_BGR2GRAY );
+            //cvEqualizeHist(gray_fr1,gray_fr1);
+            
+            
+            cout << result1 << endl;
+
+            //----------------CAM2--------------------------------------------------------------------------------------------------------
+            result2 = cvFindChessboardCorners( &frame2, board_sz,&temp2[0], &count2,CV_CALIB_CB_ADAPTIVE_THRESH|CV_CALIB_CB_FILTER_QUADS);
+            cvCvtColor( &frame2, gray_fr2, CV_BGR2GRAY );
+            
+            //cvEqualizeHist(gray_fr2,gray_fr2);
+            
+              
+            cout << result2 << endl;
+            
+            if(count1==n&&count2==n&&result1&&result2)
+            {
+                cvFindCornerSubPix( gray_fr1, &temp1[0], count1,cvSize(11, 11), 
+                                    cvSize(-1,-1),cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS,30, 0.01) );
+                cvDrawChessboardCorners( &frame1, board_sz, &temp1[0], count1, result1 );
+                cvShowImage( "corners camera1", &frame1 );
+                N1 = points[0].size();
+                points[0].resize(N1 + n, cvPoint2D32f(0,0));
+                copy( temp1.begin(), temp1.end(), points[0].begin() + N1 );
+                ++successes1;
+                
+                cvFindCornerSubPix( gray_fr2, &temp2[0], count2,cvSize(11, 11), cvSize(-1,-1),cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS,30, 0.01) );
+                cvDrawChessboardCorners( &frame2, board_sz, &temp2[0], count2, result2 );
+                cvShowImage( "corners camera2", &frame2 );
+                N2 = points[1].size();
+                points[1].resize(N2 + n, cvPoint2D32f(0,0));
+                copy( temp2.begin(), temp2.end(), points[1].begin() + N2 );
+                ++successes2;
+                
+                printf("\nNumber of couple Chessboards were found: %d", successes2);
+            }  else  {	
+                cvShowImage( "corners camera2", gray_fr2 );	
+                cvShowImage( "corners camera1", gray_fr1 );	
+            }
+            
+
+            capture.capture();
+            frame1 = capture.get_left_Frame();
+            cvShowImage("Frame_Left", &frame1);
+            
+            frame2 = capture.get_right_Frame();
+            cvShowImage("Frame_right", &frame2);
+            
+            if(cvWaitKey(15)==27) break;
+        }
+    }
     
     
 }

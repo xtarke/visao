@@ -45,6 +45,7 @@ class StereoVision
     
 private:
     //Size imageSize;	//size of input images   //http://docs.opencv.org/3.1.0/d6/d50/classcv_1_1Size__.html#ae09ae11fd75a16928ca40980ad46a9bf
+    
                     
 public:
     
