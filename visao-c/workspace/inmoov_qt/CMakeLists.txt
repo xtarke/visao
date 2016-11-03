@@ -15,6 +15,7 @@ set(inmoov_qt_SRC
   src/inmoov_qt.cpp
   src/StereoCapture.cpp
   src/StereoVision.cpp
+  src/FaceDetection.cpp
 )
 
 # Create code from a list of Qt designer ui files.

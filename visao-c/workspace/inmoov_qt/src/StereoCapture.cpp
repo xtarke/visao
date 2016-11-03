@@ -59,6 +59,16 @@ void StereoCapture::capture()
     rigth_Cam >> right_Frame;     
 }
 
+
+bool StereoCapture::isOpen()
+{
+    if(!left_Cam.isOpened() || !rigth_Cam.isOpened())
+        return false;
+    
+    
+    return true;   
+}
+
 bool StereoCapture::start_cam() 
 {
     left_Cam.open(leftCamIndex);

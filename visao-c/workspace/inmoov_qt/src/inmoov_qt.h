@@ -2,7 +2,9 @@
 #define INMOOV_QT_H
 
 #include <QMainWindow>
+#include <QErrorMessage>
 #include "StereoCapture.h"
+#include "StereoVision.h"
 
 namespace Ui {
 class inmoov_qt;
@@ -20,14 +22,15 @@ private slots:
     void on_pushButtonOpen_clicked();
     void on_pushButtonCaptureTest_cliked();
     void on_pushButtonRelesCams_cliked();
+    void on_pushButtonCalibrate_cliked();
 
 private:
     Ui::inmoov_qt *ui;
     
-    
-    // Capture module
     StereoCapture *cameras; 
+    StereoVision vision;
     
+    QErrorMessage *error_message;
     
 };
 

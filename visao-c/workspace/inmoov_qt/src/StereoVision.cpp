@@ -22,7 +22,9 @@ void StereoVision::calibrate(StereoCapture &capture){
     
     int  nx=9, ny=6, frame = 0, n_boards =40, N;
     
-    int count1 = 0,count2 = 0, result1=0, result2=0;	
+    int count1 = 0,count2 = 0, result1=0, result2=0;
+    
+    char key = 0;
     
     int  successes1 = 0,successes2 = 0 ;
     const int maxScale = 1;
@@ -75,15 +77,14 @@ void StereoVision::calibrate(StereoCapture &capture){
     imageSize = cvGetSize(&frame1);
 
     //Thu anh chessboard ve cho viec calib camera	
-    cvNamedWindow( "camera2", 1 );
-    cvNamedWindow( "camera1", 1 );
+    //cvNamedWindow( "camera2", 1 );
+    //cvNamedWindow( "camera1", 1 );
     cvNamedWindow("corners camera1",1);
-    cvNamedWindow("corners camera2",1);	
+    //cvNamedWindow("corners camera2",1);	
     printf("\nWant to capture %d chessboards for calibrate:", n_boards);	
     
     while((successes1<n_boards)||(successes2<n_boards))						
     {
-
         //--------Find and Draw chessboard--------------------------------------------------	
         if((frame++ % 20) == 0)
         {
@@ -117,38 +118,42 @@ void StereoVision::calibrate(StereoCapture &capture){
                 
                 cvFindCornerSubPix( gray_fr2, &temp2[0], count2,cvSize(11, 11), cvSize(-1,-1),cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS,30, 0.01) );
                 cvDrawChessboardCorners( &frame2, board_sz, &temp2[0], count2, result2 );
-                cvShowImage( "corners camera2", &frame2 );
+                //cvShowImage( "corners camera2", &frame2 );
                 N2 = points[1].size();
                 points[1].resize(N2 + n, cvPoint2D32f(0,0));
                 copy( temp2.begin(), temp2.end(), points[1].begin() + N2 );
                 ++successes2;
                 
                 printf("\nNumber of couple Chessboards were found: %d", successes2);
-            }  else  {	
-                cvShowImage( "corners camera2", gray_fr2 );	
-                cvShowImage( "corners camera1", gray_fr1 );	
-            }
+            }  
+             else  	
+                cvShowImage( "corners camera1", &frame1 );
+//                 cvShowImage( "corners camera1", gray_fr1 );	
+//             }
             
 
             capture.capture();
             frame1 = capture.get_left_Frame();
-            cvShowImage("Frame_Left", &frame1);
+//             cvShowImage("Frame_Left", &frame1);
             
             frame2 = capture.get_right_Frame();
-            cvShowImage("Frame_right", &frame2);
+//             cvShowImage("Frame_right", &frame2);
             
-            if(cvWaitKey(15)==27) break;
+            key = cvWaitKey(30);
+            
+            if(key == 'q' || key == 'Q'){                
+                 destroyAllWindows();
+                return;
+            }
         }
     }
 
     //grabb->stereoGrabberStopCam();
-    capture.stop_cam();
+    //capture.stop_cam();
+    
+    destroyAllWindows();
     
     
-    cvDestroyWindow("camera1");
-    cvDestroyWindow("camera2");
-    cvDestroyWindow("corners camera1");
-    cvDestroyWindow("corners camera2");	
     printf("\nDone Capture!");
 
 
@@ -205,20 +210,20 @@ void StereoVision::calibrate(StereoCapture &capture){
     cvInitUndistortRectifyMap(&_M2calib,&_D2,&_R2,&_P2,mx2calib,my2calib);
 
     printf("\nSaving matries for later use ...\n");
-    cvSave("./CalibFile/M1.yml",&_M1calib);
+    cvSave("./CalibFiles/M1.yml",&_M1calib);
 //	cvSave("CalibFile//D1.yml",&_D1);
 //	cvSave("CalibFile//R1.yml",&_R1);
 //	cvSave("CalibFile//P1.yml",&_P1);
-    cvSave("./CalibFile/M2.yml",&_M2calib);
+    cvSave("./CalibFiles/M2.yml",&_M2calib);
 //	cvSave("CalibFile//D2.yml",&_D2);
 //	cvSave("CalibFile//R2.yml",&_R2);
 //	cvSave("CalibFile//P2.yml",&_P2);
-    cvSave("./CalibFile/Q.yml",&_Qcalib);
-    cvSave("./CalibFile/T.yml",&_Tcalib);
-    cvSave("./CalibFile/mx1.yml",mx1calib);
-    cvSave("./CalibFile/my1.yml",my1calib);
-    cvSave("./CalibFile/mx2.yml",mx2calib);
-    cvSave("./CalibFile/my2.yml",my2calib);
+    cvSave("./CalibFiles/Q.yml",&_Qcalib);
+    cvSave("./CalibFiles/T.yml",&_Tcalib);
+    cvSave("./CalibFiles/mx1.yml",mx1calib);
+    cvSave("./CalibFiles/my1.yml",my1calib);
+    cvSave("./CalibFiles/mx2.yml",mx2calib);
+    cvSave("./CalibFiles/my2.yml",my2calib);
    
 }
 

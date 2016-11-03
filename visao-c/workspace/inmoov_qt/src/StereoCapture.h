@@ -30,6 +30,7 @@ public:
     void capture();
     void stop_cam();
     bool start_cam();
+    bool isOpen();
     
     Mat get_left_Frame() {return left_Frame;}
     Mat get_right_Frame() {return right_Frame;}   
