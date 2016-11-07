@@ -6,6 +6,7 @@
 
 #include "StereoCapture.h"
 #include "StereoVision.h"
+#include "FaceDetection.h"
 
 #include <QErrorMessage>
 
@@ -27,6 +28,7 @@ inmoov_qt::inmoov_qt(QWidget *parent) :
     connect(ui->pushButtonCaptureTest, SIGNAL (clicked()), this, SLOT (on_pushButtonCaptureTest_cliked()));
     connect(ui->pushButtonRelesCams, SIGNAL (clicked()), this, SLOT (on_pushButtonRelesCams_cliked()));
     connect(ui->pushButtonCalibrate, SIGNAL (clicked()), this, SLOT (on_pushButtonCalibrate_cliked()));
+    connect(ui->pushButtonFaceDetect, SIGNAL (clicked()), this, SLOT (on_pushButtonFaceDetect_cliked()));
  
     connect(ui->spinBoxTexture, SIGNAL(valueChanged(int)), ui->hSliderTexture, SLOT(setValue(int)));
     connect(ui->hSliderTexture, SIGNAL(valueChanged(int)), ui->spinBoxTexture, SLOT(setValue(int)));
@@ -70,6 +72,7 @@ void inmoov_qt::on_pushButtonOpen_clicked(){
         ui->pushButtonRelesCams->setDisabled(false);
         ui->pushButtonCalibrate->setDisabled(false);
         ui->pushButtonOpenCams->setDisabled(true);
+        ui->pushButtonFaceDetect->setDisabled(false);
     }
     else
     {
@@ -87,7 +90,8 @@ void inmoov_qt::on_pushButtonCaptureTest_cliked()
 
     ui->pushButtonCaptureTest->setDisabled(true); 
     ui->pushButtonRelesCams->setDisabled(true);
-    ui->pushButtonCalibrate->setDisabled(true); 
+    ui->pushButtonCalibrate->setDisabled(true);
+    ui->pushButtonFaceDetect->setDisabled(true);
     
     while(1){
         cameras->capture();
@@ -110,7 +114,8 @@ void inmoov_qt::on_pushButtonCaptureTest_cliked()
     
     ui->pushButtonRelesCams->setDisabled(false); 
     ui->pushButtonCalibrate->setDisabled(false);
-    ui->pushButtonCaptureTest->setDisabled(false); 
+    ui->pushButtonCaptureTest->setDisabled(false);
+    ui->pushButtonFaceDetect->setDisabled(false);
 }
 
 void inmoov_qt::on_pushButtonRelesCams_cliked()
@@ -121,6 +126,7 @@ void inmoov_qt::on_pushButtonRelesCams_cliked()
     ui->pushButtonRelesCams->setDisabled(true);
     ui->pushButtonCalibrate->setDisabled(true);
     ui->pushButtonOpenCams->setDisabled(false);
+    ui->pushButtonFaceDetect->setDisabled(true);
 
     cameras->stop_cam();
     
@@ -133,13 +139,54 @@ void inmoov_qt::on_pushButtonCalibrate_cliked(){
     ui->pushButtonCaptureTest->setDisabled(true);
     ui->pushButtonRelesCams->setDisabled(true);
     ui->pushButtonCalibrate->setDisabled(true); 
-    ui->pushButtonRelesCams->setDisabled(true);    
+    ui->pushButtonRelesCams->setDisabled(true);  
+    ui->pushButtonFaceDetect->setDisabled(true);
     
     vision.calibrate(*cameras);
     
     ui->pushButtonCaptureTest->setDisabled(false);
     ui->pushButtonRelesCams->setDisabled(false);
     ui->pushButtonCalibrate->setDisabled(false); 
-    ui->pushButtonRelesCams->setDisabled(false);   
+    ui->pushButtonRelesCams->setDisabled(false);
+    ui->pushButtonFaceDetect->setDisabled(false);
     
+}
+
+void inmoov_qt::on_pushButtonFaceDetect_cliked()
+{
+    cv::Mat frame_1;
+    char key;
+
+    ui->pushButtonCaptureTest->setDisabled(true);
+    ui->pushButtonRelesCams->setDisabled(true);
+    ui->pushButtonCalibrate->setDisabled(true); 
+    ui->pushButtonRelesCams->setDisabled(true);  
+    ui->pushButtonFaceDetect->setDisabled(true);
+    
+    FaceDetection faces(*cameras);
+    
+    while(1){
+        cameras->capture();
+
+        frame_1 = cameras->get_left_Frame();
+                
+        
+        frame_1 = faces.detect(frame_1);
+        
+        imshow("frame", frame_1);      
+            
+        //wait for a key for 30ms: should be called render images on imshow();
+        key = (char) waitKey(30);
+
+        if (key == 'q' || key == 'Q') break;
+
+    }
+    
+    destroyAllWindows();
+    
+    ui->pushButtonCaptureTest->setDisabled(false);
+    ui->pushButtonRelesCams->setDisabled(false);
+    ui->pushButtonCalibrate->setDisabled(false); 
+    ui->pushButtonRelesCams->setDisabled(false);
+    ui->pushButtonFaceDetect->setDisabled(false);
 }

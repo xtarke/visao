@@ -11,12 +11,12 @@ private:
     CascadeClassifier face_cascade;
     CascadeClassifier eyes_cascade;
     
-    void detectAndDisplay(Mat frame);
+    Mat detectAndDisplay(Mat frame);
     
 public:
     FaceDetection(StereoCapture &capture);
     
-    void detect();  
+    Mat detect(Mat frame);  
     
 };
 

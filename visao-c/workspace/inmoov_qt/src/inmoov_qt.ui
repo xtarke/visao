@@ -298,6 +298,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="pushButtonFaceDetect">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>FaceDetect</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="pushButtonRelesCams">
           <property name="enabled">
            <bool>false</bool>

@@ -9,23 +9,29 @@ FaceDetection::FaceDetection(StereoCapture &capture){
     if( !face_cascade.load("lbpcascade_frontalface.xml") ){ 
         std::cerr << "--(!)Error loading face cascade: lbpcascade_frontalface.xml\n";
     }
+    
+    if( !eyes_cascade.load( eyes_cascade_name ) ){ 
+        std::cerr << "--(!)Error loading face cascade: lbpcascade_frontalface.xml\n";        
+    };
 }
 
-void FaceDetection::detect() {
+Mat FaceDetection::detect(Mat frame) {
     
     if (face_cascade.empty())  {
         std::cerr << "--(!)Error loading face cascade: lbpcascade_frontalface.xml\n";
-        return;
+        return frame;
     }
     
-    if (cameras->isOpen()){
+    if (!cameras->isOpen()){
         std::cerr << "--(!)Cameras not ready\n";
-        return;
+        return frame;
     }
+    
+    return detectAndDisplay(frame);
        
 }
 
-void FaceDetection::detectAndDisplay( Mat frame )
+Mat FaceDetection::detectAndDisplay(Mat frame)
 {
     std::vector<Rect> faces;
     Mat frame_gray;
@@ -42,15 +48,15 @@ void FaceDetection::detectAndDisplay( Mat frame )
         std::vector<Rect> eyes;
 
         //-- In each face, detect eyes
-        eyes_cascade.detectMultiScale( faceROI, eyes, 1.1, 2, 0 |CASCADE_SCALE_IMAGE, Size(30, 30) );
-        if( eyes.size() == 2)
-        {
+        //eyes_cascade.detectMultiScale( faceROI, eyes, 1.1, 2, 0 |CASCADE_SCALE_IMAGE, Size(30, 30) );
+        //if( eyes.size() == 2)
+        //{
             //-- Draw the face
             Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height/2 );
             ellipse( frame, center, Size( faces[i].width/2, faces[i].height/2 ), 0, 0, 360, Scalar( 255, 0, 0 ), 2, 8, 0 );
-        }
+        //}
 
     }
-    //-- Show what you got
-    imshow( "Face", frame );
+    
+    return frame;
 }

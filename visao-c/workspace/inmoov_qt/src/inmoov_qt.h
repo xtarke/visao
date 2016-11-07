@@ -23,6 +23,7 @@ private slots:
     void on_pushButtonCaptureTest_cliked();
     void on_pushButtonRelesCams_cliked();
     void on_pushButtonCalibrate_cliked();
+    void on_pushButtonFaceDetect_cliked();
 
 private:
     Ui::inmoov_qt *ui;
