@@ -273,9 +273,6 @@ void StereoVision::StereoCalib(const vector<Mat>& imagelist, Size boardSize, flo
     else
         cout << "Error: can not save the intrinsic parameters\n";
 
-    Mat R1, R2, P1, P2, Q;
-    Rect validRoi[2];
-
     stereoRectify(cameraMatrix[0], distCoeffs[0],
                   cameraMatrix[1], distCoeffs[1],
                   imageSize, R, T, R1, R2, P1, P2, Q,
@@ -379,6 +376,46 @@ void StereoVision::StereoCalib(const vector<Mat>& imagelist, Size boardSize, flo
     }
 }
 
+bool StereoVision::loadCameraParameters()
+{
+    
+    FileStorage fs;
+          
+    
+    Mat teste;
+    
+    fs.open("./extrinsics.yml", FileStorage::READ);
+    
+    if( fs.isOpened() )
+    {
+        fs["R"] >> R;
+        
+        cout << teste << endl;
+        
+        //T(teste);
+        
+       // T = teste;
+        
+//         fs["T"] >> T;
+//         fs["R1"] >> R1;
+//         fs["R2"] >> R2;
+//         fs["P1"] >> P1;
+//         fs["P2"] >> P2;
+//         fs["Q"] >> Q;        
+        
+        //Mat cameraMatrix2, distCoeffs2;
+        //fs2["cameraMatrix"] >> cameraMatrix2;
+        //fs2["distCoeffs"] >> distCoeffs2;
+    }
+    else
+        cout << "Error: can not save the extrinsic parameters\n";
+    
+    
+  //  cout << T.size() << endl;
+    
+    
+    return true;
+}
 
 
 

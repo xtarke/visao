@@ -20,6 +20,7 @@ inmoov_qt::inmoov_qt(QWidget *parent) :
     //Setup config window
     ui->setupUi(this);
     cameras = NULL;
+    vision = NULL;
     
     error_message = new QErrorMessage(parent);
     
@@ -29,6 +30,7 @@ inmoov_qt::inmoov_qt(QWidget *parent) :
     connect(ui->pushButtonRelesCams, SIGNAL (clicked()), this, SLOT (on_pushButtonRelesCams_cliked()));
     connect(ui->pushButtonCalibrate, SIGNAL (clicked()), this, SLOT (on_pushButtonCalibrate_cliked()));
     connect(ui->pushButtonFaceDetect, SIGNAL (clicked()), this, SLOT (on_pushButtonFaceDetect_cliked()));
+    connect(ui->pushButtonLoadCalib, SIGNAL(clicked()), this, SLOT (on_pushButtonLoadCalib_clicked()));
     
     connect(ui->pushButtonTest, SIGNAL(clicked()), this, SLOT(on_pushButtonTest_cliked()));
  
@@ -78,6 +80,7 @@ void inmoov_qt::on_pushButtonOpen_clicked(){
         ui->pushButtonCalibrate->setDisabled(false);
         ui->pushButtonOpenCams->setDisabled(true);
         ui->pushButtonFaceDetect->setDisabled(false);
+        ui->pushButtonLoadCalib->setDisabled(false);
         
         vision = new StereoVision(*cameras);    
     }
@@ -135,6 +138,7 @@ void inmoov_qt::on_pushButtonRelesCams_cliked()
     ui->pushButtonCalibrate->setDisabled(true);
     ui->pushButtonOpenCams->setDisabled(false);
     ui->pushButtonFaceDetect->setDisabled(true);
+    ui->pushButtonLoadCalib->setDisabled(true);
 
     cameras->stop_cam();
     
@@ -193,7 +197,7 @@ void inmoov_qt::on_pushButtonCalibrate_cliked(){
     
     destroyAllWindows();
         
-    vision->StereoCalib(imagelist, boardSize, 1.0, true, false, true);
+//    vision->StereoCalib(imagelist, boardSize, 1.0, true, false, true);
     
     ui->pushButtonCaptureTest->setDisabled(false);
     ui->pushButtonRelesCams->setDisabled(false);
@@ -202,6 +206,13 @@ void inmoov_qt::on_pushButtonCalibrate_cliked(){
     ui->pushButtonFaceDetect->setDisabled(false);
     
 }
+
+void inmoov_qt::on_pushButtonLoadCalib_clicked()
+{
+    vision->loadCameraParameters();    
+}
+
+
 
 void inmoov_qt::on_pushButtonFaceDetect_cliked()
 {
@@ -242,6 +253,8 @@ void inmoov_qt::on_pushButtonFaceDetect_cliked()
 
  void inmoov_qt::on_pushButtonTest_cliked(){
      
+     
+     //if (vision == NULL)
      
      
      vision->stereoCorrelation();

@@ -6,10 +6,17 @@
 
 class StereoVision
 {
+    
+private:
+    
     StereoCapture *cameras;
     
-    Mat cameraMatrix[2], distCoeffs[2];
-    Mat R, T, E, F;
+    cv::Mat cameraMatrix[2], distCoeffs[2];
+    cv::Mat R, T, E, F;
+    
+    cv::Mat R1, R2, P1, P2, Q;
+    Rect validRoi[2];
+    
     
     // void initialization();
   
@@ -25,6 +32,8 @@ public:
                     
     void StereoCalib(const vector<Mat>& imagelist, Size boardSize, float squareSize, 
                      bool displayCorners = false, bool useCalibrated=true, bool showRectified=true);
+    
+    bool loadCameraParameters(void);
     
     void stereoCorrelation();
 };

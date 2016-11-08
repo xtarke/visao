@@ -226,6 +226,9 @@
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_15">
+        <property name="spacing">
+         <number>13</number>
+        </property>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
@@ -278,22 +281,39 @@
          </widget>
         </item>
         <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="pushButtonCalibrate">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Calibrate</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonLoadCalib">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>LoadCalibration</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <widget class="QPushButton" name="pushButtonCaptureTest">
           <property name="enabled">
            <bool>false</bool>
           </property>
           <property name="text">
            <string>CaptureTest</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButtonCalibrate">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Calibrate</string>
           </property>
          </widget>
         </item>

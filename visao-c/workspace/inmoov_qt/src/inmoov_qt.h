@@ -25,6 +25,7 @@ private slots:
     void on_pushButtonCalibrate_cliked();
     void on_pushButtonFaceDetect_cliked();
     void on_pushButtonTest_cliked();
+    void on_pushButtonLoadCalib_clicked();
 
 private:
     Ui::inmoov_qt *ui;
