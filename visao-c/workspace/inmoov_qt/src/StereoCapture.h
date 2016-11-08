@@ -32,6 +32,9 @@ public:
     bool start_cam();
     bool isOpen();
     
+    int getFrameWidth() {return frame_width;};
+    int getFrameHeight() {return frame_height;};
+    
     Mat get_left_Frame() {return left_Frame;}
     Mat get_right_Frame() {return right_Frame;}   
     

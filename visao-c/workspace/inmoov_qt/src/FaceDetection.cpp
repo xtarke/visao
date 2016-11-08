@@ -10,7 +10,7 @@ FaceDetection::FaceDetection(StereoCapture &capture){
         std::cerr << "--(!)Error loading face cascade: lbpcascade_frontalface.xml\n";
     }
     
-    if( !eyes_cascade.load( eyes_cascade_name ) ){ 
+    if( !eyes_cascade.load("haarcascade_eye_tree_eyeglasses.xml") ){ 
         std::cerr << "--(!)Error loading face cascade: lbpcascade_frontalface.xml\n";        
     };
 }
@@ -19,6 +19,11 @@ Mat FaceDetection::detect(Mat frame) {
     
     if (face_cascade.empty())  {
         std::cerr << "--(!)Error loading face cascade: lbpcascade_frontalface.xml\n";
+        return frame;
+    }
+    
+    if (eyes_cascade.empty())  {
+        std::cerr << "--(!)Error loading face cascade: haarcascade_eye_tree_eyeglasses.xml\n";
         return frame;
     }
     
@@ -44,18 +49,17 @@ Mat FaceDetection::detectAndDisplay(Mat frame)
 
     for( size_t i = 0; i < faces.size(); i++ )
     {
-        Mat faceROI = frame_gray( faces[i] );
+        Mat faceROI = frame_gray(faces[i]);
         std::vector<Rect> eyes;
 
         //-- In each face, detect eyes
-        //eyes_cascade.detectMultiScale( faceROI, eyes, 1.1, 2, 0 |CASCADE_SCALE_IMAGE, Size(30, 30) );
-        //if( eyes.size() == 2)
-        //{
+        eyes_cascade.detectMultiScale( faceROI, eyes, 1.1, 2, 0 |CASCADE_SCALE_IMAGE, Size(30, 30) );
+        if( eyes.size() == 2)
+        {
             //-- Draw the face
             Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height/2 );
             ellipse( frame, center, Size( faces[i].width/2, faces[i].height/2 ), 0, 0, 360, Scalar( 255, 0, 0 ), 2, 8, 0 );
-        //}
-
+        }
     }
     
     return frame;

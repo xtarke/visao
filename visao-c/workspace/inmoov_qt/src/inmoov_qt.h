@@ -24,12 +24,13 @@ private slots:
     void on_pushButtonRelesCams_cliked();
     void on_pushButtonCalibrate_cliked();
     void on_pushButtonFaceDetect_cliked();
+    void on_pushButtonTest_cliked();
 
 private:
     Ui::inmoov_qt *ui;
     
     StereoCapture *cameras; 
-    StereoVision vision;
+    StereoVision *vision;
     
     QErrorMessage *error_message;
     

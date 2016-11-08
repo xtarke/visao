@@ -29,6 +29,8 @@ inmoov_qt::inmoov_qt(QWidget *parent) :
     connect(ui->pushButtonRelesCams, SIGNAL (clicked()), this, SLOT (on_pushButtonRelesCams_cliked()));
     connect(ui->pushButtonCalibrate, SIGNAL (clicked()), this, SLOT (on_pushButtonCalibrate_cliked()));
     connect(ui->pushButtonFaceDetect, SIGNAL (clicked()), this, SLOT (on_pushButtonFaceDetect_cliked()));
+    
+    connect(ui->pushButtonTest, SIGNAL(clicked()), this, SLOT(on_pushButtonTest_cliked()));
  
     connect(ui->spinBoxTexture, SIGNAL(valueChanged(int)), ui->hSliderTexture, SLOT(setValue(int)));
     connect(ui->hSliderTexture, SIGNAL(valueChanged(int)), ui->spinBoxTexture, SLOT(setValue(int)));
@@ -53,6 +55,9 @@ inmoov_qt::~inmoov_qt()
     
     if (cameras)
         delete cameras;
+    
+    if (vision)
+        delete vision;
 }
 
 
@@ -73,11 +78,14 @@ void inmoov_qt::on_pushButtonOpen_clicked(){
         ui->pushButtonCalibrate->setDisabled(false);
         ui->pushButtonOpenCams->setDisabled(true);
         ui->pushButtonFaceDetect->setDisabled(false);
+        
+        vision = new StereoVision(*cameras);    
     }
     else
     {
         error_message->showMessage("VIDEOIO ERROR: V4L: both cv:id are not correct!    StereoCapture: could not reopen both cameras");
     }
+   
 }
 
 void inmoov_qt::on_pushButtonCaptureTest_cliked()
@@ -131,10 +139,20 @@ void inmoov_qt::on_pushButtonRelesCams_cliked()
     cameras->stop_cam();
     
     delete cameras; 
-    cameras = NULL;    
+    cameras = NULL; 
+    
+    delete vision;
+    vision = NULL;
 }
 
 void inmoov_qt::on_pushButtonCalibrate_cliked(){
+    
+    vector<Mat> imagelist;
+    Mat frame;
+    char key;
+    int n = 0;
+    
+    Size boardSize(9,6);
     
     ui->pushButtonCaptureTest->setDisabled(true);
     ui->pushButtonRelesCams->setDisabled(true);
@@ -142,7 +160,40 @@ void inmoov_qt::on_pushButtonCalibrate_cliked(){
     ui->pushButtonRelesCams->setDisabled(true);  
     ui->pushButtonFaceDetect->setDisabled(true);
     
-    vision.calibrate(*cameras);
+    
+    while(1){
+        
+        Mat leftGray, rightGray;
+        
+        cameras->capture();
+
+        hconcat(cameras->get_left_Frame(), cameras->get_right_Frame(), frame);        
+        
+        cvtColor(cameras->get_left_Frame(), leftGray, COLOR_BGR2GRAY);
+        cvtColor(cameras->get_right_Frame(), rightGray, COLOR_BGR2GRAY);
+        
+        imshow("frame", frame);      
+            
+        //wait for a key for 30ms: should be called render images on imshow();
+        key = (char) waitKey(30);
+
+         if(key >= 0){
+            
+            //Stop if ESQ key
+            if (key == 'q' || key == 'Q') break;
+            
+            imagelist.push_back(leftGray);
+            imagelist.push_back(rightGray);            
+            
+            n+= 2;
+         }
+    }
+    
+    cout << "Added: " << n << endl;
+    
+    destroyAllWindows();
+        
+    vision->StereoCalib(imagelist, boardSize, 1.0, true, false, true);
     
     ui->pushButtonCaptureTest->setDisabled(false);
     ui->pushButtonRelesCams->setDisabled(false);
@@ -168,9 +219,7 @@ void inmoov_qt::on_pushButtonFaceDetect_cliked()
     while(1){
         cameras->capture();
 
-        frame_1 = cameras->get_left_Frame();
-                
-        
+        frame_1 = cameras->get_left_Frame();       
         frame_1 = faces.detect(frame_1);
         
         imshow("frame", frame_1);      
@@ -190,3 +239,12 @@ void inmoov_qt::on_pushButtonFaceDetect_cliked()
     ui->pushButtonRelesCams->setDisabled(false);
     ui->pushButtonFaceDetect->setDisabled(false);
 }
+
+ void inmoov_qt::on_pushButtonTest_cliked(){
+     
+     
+     
+     vision->stereoCorrelation();
+     
+     
+ }
