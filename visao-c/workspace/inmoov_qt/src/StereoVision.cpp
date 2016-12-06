@@ -9,10 +9,18 @@ StereoVision::StereoVision(StereoCapture &capture){
    
     cameras = &capture;
     
-    load_correlation("CorrelationParams.txt");
+    //load_correlation("CorrelationParams.txt");
     
-    // initialization();
     
+    if (loadCameraParameters() == false)
+        cerr << "Warning: Could not automacally load camera paremeters" << endl;
+    
+    
+    /* default config values */
+    numberOfDisparities = 16;
+    TextureThreshold = 10;
+    UniquenessRatio = 15;
+    BlockSize = 9;   
     
 }
 
@@ -377,48 +385,155 @@ void StereoVision::StereoCalib(const vector<Mat>& imagelist, Size boardSize, flo
 }
 
 bool StereoVision::loadCameraParameters()
-{
-    
+{    
     FileStorage fs;
-          
-    
-    Mat teste;
     
     fs.open("./extrinsics.yml", FileStorage::READ);
     
-    if( fs.isOpened() )
-    {
+    if(fs.isOpened()) {
         fs["R"] >> R;
-        
-        cout << teste << endl;
-        
-        //T(teste);
-        
-       // T = teste;
-        
-//         fs["T"] >> T;
-//         fs["R1"] >> R1;
-//         fs["R2"] >> R2;
-//         fs["P1"] >> P1;
-//         fs["P2"] >> P2;
-//         fs["Q"] >> Q;        
-        
-        //Mat cameraMatrix2, distCoeffs2;
-        //fs2["cameraMatrix"] >> cameraMatrix2;
-        //fs2["distCoeffs"] >> distCoeffs2;
+        fs["T"] >> T;
+        fs["R1"] >> R1;
+        fs["R2"] >> R2;
+        fs["P1"] >> P1;
+        fs["P2"] >> P2;
+        fs["Q"] >> Q; 
+        fs.release();
     }
     else
-        cout << "Error: can not save the extrinsic parameters\n";
+        cerr << "Error: can not open the extrinsic parameters: ./extrinsics.yml\n";
     
+    fs.open("intrinsics.yml", FileStorage::READ);
     
-  //  cout << T.size() << endl;
+    if(fs.isOpened()) {
+        fs["M1"] >> cameraMatrix[0];
+        fs["D1"] >> distCoeffs[0];
+        fs["M2"] >> cameraMatrix[1];
+        fs["D2"] >> distCoeffs[1];
+        fs.release();
+    }
+    else
+        cerr << "Error: can not open the extrinsic parameters: ./intrinsics.yml\n";
     
+    if (R.empty() || T.empty() || R1.empty() 
+        || R2.empty() || P1.empty() || P2.empty()
+        || Q.empty())
+        return false;   
+    
+    if (cameraMatrix[0].empty() || distCoeffs[0].empty() 
+        || cameraMatrix[1].empty() || distCoeffs[1].empty())
+        return false;
     
     return true;
 }
 
 
+void StereoVision::stereoMatch(){
+    
+    enum { STEREO_BM=0, STEREO_SGBM=1, STEREO_HH=2, STEREO_VAR=3, STEREO_3WAY=4 };
+    int alg = STEREO_BM;
+    int SADWindowSize; //, numberOfDisparities;
+    
+    bool no_display = false;
+    
+    float scale = 1;
+    
+    
+    Ptr<StereoBM> bm = StereoBM::create(16,9);
+    Ptr<StereoSGBM> sgbm = StereoSGBM::create(0,16,3);
+    
+    Size imageSize;
+    Mat leftImg, rightImg;
+    
+    while (1){
+    
+        cameras->capture();
+        leftImg = cameras->get_left_Frame();
+        rightImg = cameras->get_right_Frame();
+        
+        imageSize = cameras->get_left_Frame().size();
 
+        
+        stereoRectify(cameraMatrix[0], distCoeffs[0],
+                    cameraMatrix[1], distCoeffs[1],
+                    imageSize, R, T, R1, R2, P1, P2, Q,
+                    CALIB_ZERO_DISPARITY, 1, imageSize, &validRoi[0], &validRoi[1]);
+        
+    // stereoRectify( M1, D1, M2, D2, img_size, R, T, R1, R2, P1, P2, Q, CALIB_ZERO_DISPARITY, -1, img_size, &roi1, &roi2 );
+
+        Mat map11, map12, map21, map22;
+        initUndistortRectifyMap(cameraMatrix[0], distCoeffs[0], R1, P1, imageSize, CV_16SC2, map11, map12);
+        initUndistortRectifyMap(cameraMatrix[1], distCoeffs[1], R2, P2, imageSize, CV_16SC2, map21, map22);
+
+        Mat img1r, img2r;
+        remap(leftImg, img1r, map11, map12, INTER_LINEAR);
+        remap(rightImg, img2r, map21, map22, INTER_LINEAR);
+
+        leftImg = img1r;
+        rightImg = img2r;
+        
+        Mat result_;
+        Mat leftGray;
+        Mat rightGray;
+        
+        cvtColor(leftImg, leftGray, COLOR_BGR2GRAY);
+        cvtColor(rightImg, rightGray, COLOR_BGR2GRAY);
+    
+        bm->setROI1(validRoi[0]);
+        bm->setROI2(validRoi[1]);
+        bm->setPreFilterCap(31);
+        bm->setBlockSize(BlockSize);
+        bm->setMinDisparity(0);
+        bm->setNumDisparities(numberOfDisparities);
+        bm->setTextureThreshold(TextureThreshold);
+        bm->setUniquenessRatio(UniquenessRatio);
+        bm->setSpeckleWindowSize(100);
+        bm->setSpeckleRange(32);
+        bm->setDisp12MaxDiff(1);
+
+        int sgbmWinSize = BlockSize;
+        int cn = leftImg.channels();             
+        
+        sgbm->setPreFilterCap(63);
+        sgbm->setBlockSize(sgbmWinSize);        
+        sgbm->setP1(8*cn*sgbmWinSize*sgbmWinSize);
+        sgbm->setP2(32*cn*sgbmWinSize*sgbmWinSize);
+        sgbm->setMinDisparity(0);
+        sgbm->setNumDisparities(numberOfDisparities);
+        sgbm->setUniquenessRatio(10);
+        sgbm->setSpeckleWindowSize(100);
+        sgbm->setSpeckleRange(32);
+        sgbm->setDisp12MaxDiff(1);
+        
+        if(alg==STEREO_HH)
+            sgbm->setMode(StereoSGBM::MODE_HH);
+        else if(alg==STEREO_SGBM)
+            sgbm->setMode(StereoSGBM::MODE_SGBM);
+        else if(alg==STEREO_3WAY)
+            sgbm->setMode(StereoSGBM::MODE_SGBM_3WAY);
+        
+        Mat disp, disp8, result;
+        
+        
+        if( alg == STEREO_BM )
+            bm->compute(leftGray, rightGray, disp);
+        else if( alg == STEREO_SGBM || alg == STEREO_HH || alg == STEREO_3WAY )
+            sgbm->compute(leftImg, rightImg, disp);
+
+        if( alg != STEREO_VAR )
+            disp.convertTo(disp8, CV_8U, 255/(numberOfDisparities*16.));
+        else
+            disp.convertTo(disp8, CV_8U);
+
+        imshow("frame", disp);
+
+        char key = (char) waitKey(30);
+
+        //Stop if ESQ key
+        if(key >= 0)            
+            if (key == 'q' || key == 'Q') break;
+    }        
+}
 
 
 

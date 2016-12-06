@@ -18,7 +18,11 @@ private:
     Rect validRoi[2];
     
     
-    // void initialization();
+    /* Config parameters for sbm (disparity map)*/
+    int TextureThreshold;
+    int UniquenessRatio;
+    int numberOfDisparities;
+    int BlockSize;
   
     void stereoDetect();
                     
@@ -35,7 +39,16 @@ public:
     
     bool loadCameraParameters(void);
     
+    void stereoMatch(void);
+    
     void stereoCorrelation();
+    
+    /* Public config interfaces */
+    void setNumberOfDisparities(int numberOfDisparities_) {numberOfDisparities = numberOfDisparities_;};
+    void setTextureThreshold(int TextureThreshold_) {TextureThreshold = TextureThreshold_;};
+    void setUniquenessRatio(int UniquenessRatio_) {UniquenessRatio = UniquenessRatio_;};
+    void setBlockSize(int BlockSize_) {BlockSize = BlockSize_;};
+     
 };
 
 #endif // STEREOVISION_H

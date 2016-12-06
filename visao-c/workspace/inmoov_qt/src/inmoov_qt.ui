@@ -157,14 +157,14 @@
         <item>
          <widget class="QLabel" name="label_5">
           <property name="text">
-           <string>Threshold</string>
+           <string>Block Size</string>
           </property>
          </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
-           <widget class="QSpinBox" name="spinBoxThreshold">
+           <widget class="QSpinBox" name="spinBoxBlock">
             <property name="maximum">
              <number>300</number>
             </property>
@@ -174,7 +174,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="hSliderThreshold">
+           <widget class="QSlider" name="hSliderBlock">
             <property name="maximum">
              <number>300</number>
             </property>
@@ -243,7 +243,7 @@
             <item>
              <widget class="QLineEdit" name="lineEditLeftCam">
               <property name="text">
-               <string>2</string>
+               <string>1</string>
               </property>
              </widget>
             </item>
@@ -263,7 +263,7 @@
               <item>
                <widget class="QLineEdit" name="lineEditRightCam">
                 <property name="text">
-                 <string>1</string>
+                 <string>2</string>
                 </property>
                </widget>
               </item>

@@ -36,18 +36,22 @@ inmoov_qt::inmoov_qt(QWidget *parent) :
  
     connect(ui->spinBoxTexture, SIGNAL(valueChanged(int)), ui->hSliderTexture, SLOT(setValue(int)));
     connect(ui->hSliderTexture, SIGNAL(valueChanged(int)), ui->spinBoxTexture, SLOT(setValue(int)));
-    
+    connect(ui->spinBoxTexture, SIGNAL(valueChanged(int)), this, SLOT(configTextureThreshold(int)));
+        
     connect(ui->spinBoxArea, SIGNAL(valueChanged(int)), ui->hSliderArea, SLOT(setValue(int)));
     connect(ui->hSliderArea, SIGNAL(valueChanged(int)), ui->spinBoxArea, SLOT(setValue(int)));
     
     connect(ui->spinBoxNumDisparities, SIGNAL(valueChanged(int)), ui->hSliderNumDisparities, SLOT(setValue(int)));
-    connect(ui->hSliderNumDisparities, SIGNAL(valueChanged(int)), ui->spinBoxNumDisparities, SLOT(setValue(int)));
-    
-    connect(ui->spinBoxThreshold, SIGNAL(valueChanged(int)), ui->hSliderThreshold, SLOT(setValue(int)));
-    connect(ui->hSliderThreshold, SIGNAL(valueChanged(int)), ui->spinBoxThreshold, SLOT(setValue(int)));
+    connect(ui->hSliderNumDisparities, SIGNAL(valueChanged(int)), ui->spinBoxNumDisparities, SLOT(setValue(int)));    
+    connect(ui->spinBoxNumDisparities,  SIGNAL(valueChanged(int)), this, SLOT(configNumDisparities(int)));
+        
+    connect(ui->spinBoxBlock, SIGNAL(valueChanged(int)), ui->hSliderBlock, SLOT(setValue(int)));
+    connect(ui->hSliderBlock, SIGNAL(valueChanged(int)), ui->spinBoxBlock, SLOT(setValue(int)));
+    connect(ui->spinBoxBlock, SIGNAL(valueChanged(int)), this, SLOT(configBlockSize(int)));
 
     connect(ui->spinBoxUniqueness, SIGNAL(valueChanged(int)), ui->hSliderUniqueness, SLOT(setValue(int)));
     connect(ui->hSliderUniqueness, SIGNAL(valueChanged(int)), ui->spinBoxUniqueness, SLOT(setValue(int)));
+    connect(ui->spinBoxUniqueness, SIGNAL(valueChanged(int)), this, SLOT(setUniquenessRatio(int)));
 }
 
 inmoov_qt::~inmoov_qt()
@@ -209,7 +213,8 @@ void inmoov_qt::on_pushButtonCalibrate_cliked(){
 
 void inmoov_qt::on_pushButtonLoadCalib_clicked()
 {
-    vision->loadCameraParameters();    
+    if (!vision->loadCameraParameters())
+        error_message->showMessage("Cannot read all cameras parameters from ./extrinsics.yml or ./intrinsics.yml");
 }
 
 
@@ -253,11 +258,34 @@ void inmoov_qt::on_pushButtonFaceDetect_cliked()
 
  void inmoov_qt::on_pushButtonTest_cliked(){
      
-     
      //if (vision == NULL)
      
-     
-     vision->stereoCorrelation();
-     
+     vision->stereoMatch();    
      
  }
+ 
+ void inmoov_qt::configNumDisparities(int nDisparities){
+     if (vision)
+         vision->setNumberOfDisparities(nDisparities);     
+ }
+ 
+void inmoov_qt::configTextureThreshold(int TextureThreshold)
+{
+    if (vision)
+        vision->setTextureThreshold(TextureThreshold);
+}
+
+void inmoov_qt::configUniquenessRatio(int UniquenessRatio)
+{
+    if (vision)
+        vision->setUniquenessRatio(UniquenessRatio);
+}
+
+void inmoov_qt::configBlockSize(int BlockSize)
+{
+    if (vision)
+        vision->setBlockSize(BlockSize);
+    
+}
+
+

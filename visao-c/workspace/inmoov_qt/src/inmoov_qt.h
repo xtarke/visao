@@ -26,6 +26,11 @@ private slots:
     void on_pushButtonFaceDetect_cliked();
     void on_pushButtonTest_cliked();
     void on_pushButtonLoadCalib_clicked();
+    
+    void configNumDisparities(int nDisparities);
+    void configTextureThreshold(int TextureThreshold);
+    void configUniquenessRatio(int UniquenessRatio);
+    void configBlockSize(int BlockSize);
 
 private:
     Ui::inmoov_qt *ui;
