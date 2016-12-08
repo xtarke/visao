@@ -22,10 +22,10 @@ vector<Mat*> LoadImages(string RightFileList, string LeftFileList);
 void stereoMatch(Mat ImageLeft, Mat ImageRight );
 bool loadCameraParameters();
 
-int TextureThreshold = 10;
-int UniquenessRatio = 16;
-int numberOfDisparities = 16;
-int BlockSize = 9;
+int TextureThreshold = 0; //10;
+int UniquenessRatio = 8; //16;
+int numberOfDisparities = 80;
+int BlockSize = 81;
 
 int main(int argc, char **argv) {
    
@@ -420,7 +420,7 @@ void StereoCalib(const vector<Mat>& imagelist, Size boardSize, float squareSize,
 void stereoMatch(Mat leftImg, Mat rightImg ){
     
     enum { STEREO_BM=0, STEREO_SGBM=1, STEREO_HH=2, STEREO_VAR=3, STEREO_3WAY=4 };
-    int alg = STEREO_BM;
+    int alg = STEREO_SGBM;
     int SADWindowSize; //, numberOfDisparities;
     
     bool no_display = false;
@@ -431,6 +431,7 @@ void stereoMatch(Mat leftImg, Mat rightImg ){
     Ptr<StereoBM> bm = StereoBM::create(16,9);
     Ptr<StereoSGBM> sgbm = StereoSGBM::create(0,16,3);
     
+          
     Size imageSize = leftImg.size();
     
     stereoRectify(cameraMatrix[0], distCoeffs[0],
@@ -460,29 +461,53 @@ void stereoMatch(Mat leftImg, Mat rightImg ){
 
     bm->setROI1(validRoi[0]);
     bm->setROI2(validRoi[1]);
-    bm->setPreFilterCap(31);
-    bm->setBlockSize(BlockSize);
+    
+    bm->setPreFilterSize(15);
+    bm->setPreFilterCap(20);
+    bm->setBlockSize(11);
     bm->setMinDisparity(0);
-    bm->setNumDisparities(numberOfDisparities);
-    bm->setTextureThreshold(TextureThreshold);
-    bm->setUniquenessRatio(UniquenessRatio);
-    bm->setSpeckleWindowSize(100);
-    bm->setSpeckleRange(32);
-    bm->setDisp12MaxDiff(1);
+    bm->setNumDisparities(80);
+    bm->setTextureThreshold(0);
+    bm->setUniquenessRatio(8);
+    bm->setSpeckleWindowSize(0); 
+    bm->setSpeckleRange(0);
+    
+    
+    
+//     bm->setPreFilterCap(31);
+//     bm->setBlockSize(BlockSize);
+//     bm->setMinDisparity(0);
+//     bm->setNumDisparities(numberOfDisparities);
+//     bm->setTextureThreshold(TextureThreshold);
+//     bm->setUniquenessRatio(UniquenessRatio);
+//     bm->setSpeckleWindowSize(100);
+//     bm->setSpeckleRange(32);
+//     bm->setDisp12MaxDiff(1);
+    
+    BlockSize = 11;
 
     int sgbmWinSize = BlockSize;
     int cn = leftImg.channels();             
-    
-    sgbm->setPreFilterCap(63);
-    sgbm->setBlockSize(sgbmWinSize);        
-    sgbm->setP1(8*cn*sgbmWinSize*sgbmWinSize);
-    sgbm->setP2(32*cn*sgbmWinSize*sgbmWinSize);
-    sgbm->setMinDisparity(0);
-    sgbm->setNumDisparities(numberOfDisparities);
-    sgbm->setUniquenessRatio(10);
-    sgbm->setSpeckleWindowSize(100);
-    sgbm->setSpeckleRange(32);
-    sgbm->setDisp12MaxDiff(1);
+
+    sgbm->setPreFilterCap(20);
+    sgbm->setBlockSize(11);
+    sgbm->setMinDisparity(-63);
+    sgbm->setNumDisparities(80);
+//     sgbm->setTextureThreshold(0);
+    sgbm->setUniquenessRatio(8);
+    sgbm->setSpeckleWindowSize(0); 
+    sgbm->setSpeckleRange(0);
+        
+//     sgbm->setPreFilterCap(63);
+//     sgbm->setBlockSize(sgbmWinSize);        
+     sgbm->setP1(8*cn*sgbmWinSize*sgbmWinSize);
+     sgbm->setP2(32*cn*sgbmWinSize*sgbmWinSize);
+//     sgbm->setMinDisparity(0);
+//     sgbm->setNumDisparities(numberOfDisparities);
+//     sgbm->setUniquenessRatio(10);
+//     sgbm->setSpeckleWindowSize(100);
+//     sgbm->setSpeckleRange(32);
+//     sgbm->setDisp12MaxDiff(1);
     
     if(alg==STEREO_HH)
         sgbm->setMode(StereoSGBM::MODE_HH);
@@ -493,24 +518,29 @@ void stereoMatch(Mat leftImg, Mat rightImg ){
     
     Mat disp, disp8, result;
     
+    cv::Mat imgDisparity32F = Mat( leftImg.rows, leftImg.cols, CV_32F );  
     
     if( alg == STEREO_BM )
-        bm->compute(leftGray, rightGray, disp);
+        bm->compute(leftGray, rightGray, imgDisparity32F);  //disp);
+    
     else if( alg == STEREO_SGBM || alg == STEREO_HH || alg == STEREO_3WAY )
-        sgbm->compute(leftImg, rightImg, disp);
+        sgbm->compute(leftImg, rightImg, disp ); //disp);
 
     if( alg != STEREO_VAR )
         disp.convertTo(disp8, CV_8U, 255/(numberOfDisparities*16.));
     else
         disp.convertTo(disp8, CV_8U);
 
-    imshow("frame", disp);
+    disp.convertTo( imgDisparity32F, CV_32F, 1./16);
+    cv::Mat XYZ(imgDisparity32F.size(),CV_32FC3);
+   
+    reprojectImageTo3D(imgDisparity32F, XYZ, Q, false, CV_32F);
+    
+    imshow("frame", imgDisparity32F);
 
-    char key = (char) waitKey(0);
+    waitKey(0);
 
-    //Stop if ESQ key
-    if(key >= 0) ;        
-        //  if (key == 'q' || key == 'Q') break;
+
         
 }
 

@@ -3,8 +3,11 @@
 
 #include <QMainWindow>
 #include <QErrorMessage>
+#include <QtSerialPort/QtSerialPort>
 #include "StereoCapture.h"
 #include "StereoVision.h"
+
+class SettingsDialog;
 
 namespace Ui {
 class inmoov_qt;
@@ -24,8 +27,15 @@ private slots:
     void on_pushButtonRelesCams_cliked();
     void on_pushButtonCalibrate_cliked();
     void on_pushButtonFaceDetect_cliked();
-    void on_pushButtonTest_cliked();
+    void on_pushButtonTestDisparity_cliked();
     void on_pushButtonLoadCalib_clicked();
+    
+    
+    // Serial Port Slots
+    void on_pushButtonOpenSerial_clicked();
+    void on_pushButtonMoveLeft_clicked();
+    void on_pushButtonMoveRight_cliced();
+    void on_actionConfig_Serial_clicked();
     
     void configNumDisparities(int nDisparities);
     void configTextureThreshold(int TextureThreshold);
@@ -34,11 +44,17 @@ private slots:
 
 private:
     Ui::inmoov_qt *ui;
+    SettingsDialog *settings;
     
     StereoCapture *cameras; 
     StereoVision *vision;
     
     QErrorMessage *error_message;
+    
+    int8_t pos;
+    
+    // Temporaty
+    QSerialPort *serial;
     
 };
 

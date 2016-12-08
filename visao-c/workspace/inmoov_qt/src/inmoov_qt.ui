@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>632</width>
-    <height>447</height>
+    <height>494</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -318,9 +318,12 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButtonTest">
+         <widget class="QPushButton" name="pushButtonTestDisparity">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>Test</string>
+           <string>TestDisparityMap</string>
           </property>
          </widget>
         </item>
@@ -344,6 +347,37 @@
           </property>
          </widget>
         </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="pushButtonOpenSerial">
+            <property name="text">
+             <string>OpenSerial</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonMoveLeft">
+            <property name="text">
+             <string>MoveLeft</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonMoveRight">
+            <property name="text">
+             <string>MoveRight</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
        </layout>
       </item>
      </layout>
@@ -360,6 +394,13 @@
      <height>30</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuCOnfig">
+    <property name="title">
+     <string>Too&amp;ls</string>
+    </property>
+    <addaction name="actionConfig_Serial"/>
+   </widget>
+   <addaction name="menuCOnfig"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -370,6 +411,11 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionConfig_Serial">
+   <property name="text">
+    <string>Config Serial</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

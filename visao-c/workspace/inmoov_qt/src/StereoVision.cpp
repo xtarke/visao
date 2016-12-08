@@ -17,11 +17,11 @@ StereoVision::StereoVision(StereoCapture &capture){
     
     
     /* default config values */
-    numberOfDisparities = 16;
+    numberOfDisparities = 80;
     TextureThreshold = 10;
-    UniquenessRatio = 15;
-    BlockSize = 9;   
-    
+    UniquenessRatio = 8;
+    BlockSize = 11;   
+        
 }
 
 
@@ -431,13 +431,12 @@ bool StereoVision::loadCameraParameters()
 void StereoVision::stereoMatch(){
     
     enum { STEREO_BM=0, STEREO_SGBM=1, STEREO_HH=2, STEREO_VAR=3, STEREO_3WAY=4 };
-    int alg = STEREO_BM;
+    int alg = STEREO_SGBM;
     int SADWindowSize; //, numberOfDisparities;
     
     bool no_display = false;
     
     float scale = 1;
-    
     
     Ptr<StereoBM> bm = StereoBM::create(16,9);
     Ptr<StereoSGBM> sgbm = StereoSGBM::create(0,16,3);
@@ -494,16 +493,30 @@ void StereoVision::stereoMatch(){
         int sgbmWinSize = BlockSize;
         int cn = leftImg.channels();             
         
-        sgbm->setPreFilterCap(63);
-        sgbm->setBlockSize(sgbmWinSize);        
-        sgbm->setP1(8*cn*sgbmWinSize*sgbmWinSize);
-        sgbm->setP2(32*cn*sgbmWinSize*sgbmWinSize);
-        sgbm->setMinDisparity(0);
+        
+        sgbm->setPreFilterCap(20);
+        sgbm->setBlockSize(sgbmWinSize);
+        sgbm->setMinDisparity(-63);
         sgbm->setNumDisparities(numberOfDisparities);
-        sgbm->setUniquenessRatio(10);
-        sgbm->setSpeckleWindowSize(100);
-        sgbm->setSpeckleRange(32);
-        sgbm->setDisp12MaxDiff(1);
+        sgbm->setUniquenessRatio(8);
+        sgbm->setSpeckleWindowSize(0); 
+        sgbm->setSpeckleRange(0);
+        
+        
+        
+//         sgbm->setPreFilterCap(63);
+//         sgbm->setBlockSize(sgbmWinSize);        
+//         sgbm->setP1(8*cn*sgbmWinSize*sgbmWinSize);
+//         sgbm->setP2(32*cn*sgbmWinSize*sgbmWinSize);
+//         sgbm->setMinDisparity(0);
+//         sgbm->setNumDisparities(numberOfDisparities);
+//         sgbm->setUniquenessRatio(10);
+//         sgbm->setSpeckleWindowSize(100);
+//         sgbm->setSpeckleRange(32);
+//         sgbm->setDisp12MaxDiff(1);
+        
+        
+        
         
         if(alg==STEREO_HH)
             sgbm->setMode(StereoSGBM::MODE_HH);
@@ -525,7 +538,11 @@ void StereoVision::stereoMatch(){
         else
             disp.convertTo(disp8, CV_8U);
 
-        imshow("frame", disp);
+        
+        cv::Mat imgDisparity32F = Mat( leftImg.rows, leftImg.cols, CV_32F );  
+        disp.convertTo( imgDisparity32F, CV_32F, 1./16);
+        
+        imshow("frame", disp8);
 
         char key = (char) waitKey(30);
 

@@ -7,7 +7,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 # Find the QtWidgets library
+find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
+# find_package(QtSerialPort REQUIRED)
 find_package(OpenCV REQUIRED)
 
 set(inmoov_qt_SRC
@@ -16,11 +18,12 @@ set(inmoov_qt_SRC
   src/StereoCapture.cpp
   src/StereoVision.cpp
   src/FaceDetection.cpp
+  src/serialsettingsdialog.cpp
 )
 
 # Create code from a list of Qt designer ui files.
 #set(CMAKE_AUTOUIC ON) # use this if you have CMake 3.x instead of the following
-qt5_wrap_ui(inmoov_qt_SRC src/inmoov_qt.ui)
+qt5_wrap_ui(inmoov_qt_SRC src/inmoov_qt.ui src/serialsettingsdialog.ui)
 
 # Tell CMake to create the helloworld executable
 add_executable(inmoov_qt ${inmoov_qt_SRC})
@@ -30,3 +33,6 @@ target_link_libraries(inmoov_qt ${OpenCV_LIBS} Qt5::Widgets)
 
 # Install the executable
 install(TARGETS inmoov_qt DESTINATION bin)
+
+# Add QT modules
+qt5_use_modules(inmoov_qt Core SerialPort)
