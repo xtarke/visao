@@ -4,7 +4,9 @@
 #include "ui_inmoov_qt.h"
 #include "opencv2/opencv.hpp"
 
-#include "serialsettingsdialog.h"
+
+
+#include "remotecontrolwindow.h"
 
 #include "StereoCapture.h"
 #include "StereoVision.h"
@@ -23,16 +25,15 @@ inmoov_qt::inmoov_qt(QWidget *parent) :
     cameras = NULL;
     vision = NULL;
     
-    settings = new SettingsDialog;
+    serial = new QSerialPort(this);    
+    remotecontrol = new RemoteControlWindow(this, serial);
     
-    serial = new QSerialPort(this);
+//     serial->setBaudRate(QSerialPort::Baud9600);
+//     serial->setDataBits(QSerialPort::Data8);
+//     serial->setParity(QSerialPort::NoParity);
+//     serial->setStopBits(QSerialPort::OneStop);
     
-    serial->setBaudRate(QSerialPort::Baud9600);
-    serial->setDataBits(QSerialPort::Data8);
-    serial->setParity(QSerialPort::NoParity);
-    serial->setStopBits(QSerialPort::OneStop);
-    
-     pos = 50;
+//      pos = 50;
     
     error_message = new QErrorMessage(parent);
     
@@ -68,10 +69,11 @@ inmoov_qt::inmoov_qt(QWidget *parent) :
     
     /* Signals are already connected */
     //connect(ui->pushButtonOpenSerial, SIGNAL(clicked()), this, SLOT(on_pushButtonOpenSerial_clicked()));
-    //connect(ui->pushButtonMoveRight, SIGNAL(clicked()), this, SLOT(on_pushButtonMoveRight_cliced()));
+    connect(ui->pushButtonMoveRight, SIGNAL(clicked()), this, SLOT(on_pushButtonMoveRight_cliced()));
     //connect(ui->pushButtonMoveLeft, SIGNAL(clicked()), this, SLOT(on_pushButtonMoveLeft_clicked()));
     
     connect(ui->actionConfig_Serial, SIGNAL(triggered()), this, SLOT(on_actionConfig_Serial_clicked()));
+
     
 }
 
@@ -80,10 +82,10 @@ inmoov_qt::~inmoov_qt()
     delete ui;
     delete error_message;
     
-    if (serial->isOpen())
-        serial->close();
-    
-    delete serial;
+//     if (serial->isOpen())
+//         serial->close();
+//     
+//     delete serial;
     
     if (cameras)
         delete cameras;
@@ -326,99 +328,52 @@ void inmoov_qt::configBlockSize(int BlockSize)
 
 
 void inmoov_qt::on_actionConfig_Serial_clicked(){    
-    settings->show();        
+//     settings->show();        
 }
 
 
 void inmoov_qt::on_pushButtonOpenSerial_clicked(){
      
-    SettingsDialog::Settings p = settings->settings();
-    serial->setPortName(p.name);
-    serial->setBaudRate(p.baudRate);
-    serial->setDataBits(p.dataBits);
-    serial->setParity(p.parity);
-    serial->setStopBits(p.stopBits);
-    serial->setFlowControl(p.flowControl);
     
-    if (serial->open(QIODevice::ReadWrite)) {
-       
-        cout << "Open"; 
-        
-    } else {
-        error_message->showMessage("Could not open serial");
-    } 
-    
+    remotecontrol->show();
+     
 }
 
 void inmoov_qt::on_pushButtonMoveLeft_clicked(){
-    
-    QByteArray data;
-    
-    cout << "L" << endl;
-    
-    pos+=10;
-    
-    if (pos >= 100) pos = 100;
-    
-    data.resize(5);
-    data[0] = 0x7e;                             //Inicializador - ST
-    data[1] = 0x02;                             //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    data[2] = 0x01;                             //Identificador de comando - ID
-    data[3] = pos;                              //Dados - DT
-    data[4] = 0xff -  data[2] -  data[3];           //Checksum
-    
-    /*if (!serial->isOpen()){
-        error_message->showMessage("Serial port is not open!");     
-        return;        
-    } */
-
-    // serial->write(data);
+//     QByteArray data;
+//     
+//     if (!serial->isOpen()){
+//         error_message->showMessage("Serial port is not open!");     
+//         return;        
+//     }
+//     
+//     pos+=10;
+//     
+//     if (pos >= 100) pos = 100;
+//     
+//     data.resize(5);
+//     data[0] = 0x7e;                             //Inicializador - ST
+//     data[1] = 0x02;                             //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
+//     data[2] = 0x01;                             //Identificador de comando - ID
+//     data[3] = pos;                              //Dados - DT
+//     data[4] = 0xff -  data[2] -  data[3];           //Checksum
+//     
+//     serial->write(data);
 }
 
 
-// Inicializador - ST
-// Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-// Identificador de comando - ID
-// Dados - DT
-// Checksum - CH - Conta tudo menos ST e SZ
-// 
-// 
-// ST SZ ID DT CH
-// 7E -- -- -- --
-// 
-// 
-// Pacotes de dados
-// Se ID = 01 (move servo)
-// Id servo - D1
-// Porcentagem - D0
-// 
-// D1 D0
-
 void inmoov_qt::on_pushButtonMoveRight_cliced(){
-    
-   cout << "R" << endl;
-   
-   pos-=10;
-    
-    if (pos <= 0) pos = 0;
-   
-   
-    QByteArray data;
-    data.resize(5);
-    data[0] = 0x7e;                             //Inicializador - ST
-    data[1] = 0x02;                             //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    data[2] = 0x01;                             //Identificador de comando - ID
-    data[3] = pos;                              //Dados - DT
-    data[4] = 0xff -  data[2] -  data[3];           //Checksum
-    
-    if (!serial->isOpen()){
-        error_message->showMessage("Serial port is not open!");     
-        return;        
-    }
 
-    serial->write(data);
+
+}
+
+void inmoov_qt::on_received_serial_data(){
     
-    cout << (int)pos << endl;
-    
+//     QByteArray data = serial->readAll();
+//     
+//     for (int i=0; i < data.size(); i++)
+//         cout << (char)data[i];
+//     
+//     std::cout.flush(); 
 }
 

@@ -19,11 +19,12 @@ set(inmoov_qt_SRC
   src/StereoVision.cpp
   src/FaceDetection.cpp
   src/serialsettingsdialog.cpp
+  src/remotecontrolwindow.cpp
 )
 
 # Create code from a list of Qt designer ui files.
 #set(CMAKE_AUTOUIC ON) # use this if you have CMake 3.x instead of the following
-qt5_wrap_ui(inmoov_qt_SRC src/inmoov_qt.ui src/serialsettingsdialog.ui)
+qt5_wrap_ui(inmoov_qt_SRC src/inmoov_qt.ui src/serialsettingsdialog.ui src/remotecontrolwindow.ui)
 
 # Tell CMake to create the helloworld executable
 add_executable(inmoov_qt ${inmoov_qt_SRC})

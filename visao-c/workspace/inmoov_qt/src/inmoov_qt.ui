@@ -93,8 +93,11 @@
             <property name="maximum">
              <number>25</number>
             </property>
+            <property name="singleStep">
+             <number>2</number>
+            </property>
             <property name="value">
-             <number>10</number>
+             <number>9</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -413,7 +416,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionConfig_Serial">
    <property name="text">
-    <string>Config Serial</string>
+    <string>&amp;Config Serial</string>
    </property>
   </action>
  </widget>

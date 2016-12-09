@@ -8,6 +8,7 @@
 #include "StereoVision.h"
 
 class SettingsDialog;
+class RemoteControlWindow;
 
 namespace Ui {
 class inmoov_qt;
@@ -36,6 +37,7 @@ private slots:
     void on_pushButtonMoveLeft_clicked();
     void on_pushButtonMoveRight_cliced();
     void on_actionConfig_Serial_clicked();
+    void on_received_serial_data();
     
     void configNumDisparities(int nDisparities);
     void configTextureThreshold(int TextureThreshold);
@@ -44,16 +46,13 @@ private slots:
 
 private:
     Ui::inmoov_qt *ui;
-    SettingsDialog *settings;
+    RemoteControlWindow *remotecontrol;
     
     StereoCapture *cameras; 
     StereoVision *vision;
     
     QErrorMessage *error_message;
     
-    int8_t pos;
-    
-    // Temporaty
     QSerialPort *serial;
     
 };
