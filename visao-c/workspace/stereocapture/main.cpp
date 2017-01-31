@@ -25,10 +25,10 @@ int main(int argc, char **argv) {
     camera_1.open(stoi(args_1));
     camera_2.open(stoi(args_2));
     
-    camera_1.set(CV_CAP_PROP_FRAME_WIDTH,1280);
-    camera_1.set(CV_CAP_PROP_FRAME_HEIGHT,720);
-    camera_2.set(CV_CAP_PROP_FRAME_WIDTH,1280);
-    camera_2.set(CV_CAP_PROP_FRAME_HEIGHT,720);
+    camera_1.set(CV_CAP_PROP_FRAME_WIDTH,640);
+    camera_1.set(CV_CAP_PROP_FRAME_HEIGHT,480);
+    camera_2.set(CV_CAP_PROP_FRAME_WIDTH,640);
+    camera_2.set(CV_CAP_PROP_FRAME_HEIGHT,480);
     
     while(1) {
          Mat frame_1;
@@ -62,8 +62,8 @@ int main(int argc, char **argv) {
                 
                 String s = ss.str();
                 
-                String frame_left("Frame_l_");
-                String frame_right("Frame_r_");
+                String frame_left("left_");
+                String frame_right("right_");
               
                 frame_left += s + ".png";
                 frame_right += s + ".png";

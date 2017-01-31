@@ -196,6 +196,11 @@ void StereoVision::calibrate(StereoCapture &capture){
     IplImage frame1(capture.get_left_Frame());
     IplImage* gray_fr1 = cvCreateImage( frame1.imageSize, 8, 1 );
     
+    
+    cvSave("./CalibFiles/Q.yml",&frame1);
+     capture.stop_cam();
+    
+    return;
         
     // IplImage *frame2 = grabb->imageRight;
     // IplImage* gray_fr2 = cvCreateImage( cvGetSize(frame2), 8, 1 );
@@ -206,8 +211,8 @@ void StereoVision::calibrate(StereoCapture &capture){
     imageSize = cvGetSize(&frame1);
 
     //Thu anh chessboard ve cho viec calib camera	
-    cvNamedWindow( "camera2", 1 );
-    cvNamedWindow( "camera1", 1 );
+    //cvNamedWindow( "camera2", 1 );
+    //cvNamedWindow( "camera1", 1 );
     cvNamedWindow("corners camera1",1);
     cvNamedWindow("corners camera2",1);	
     printf("\nWant to capture %d chessboards for calibrate:", n_boards);	
@@ -222,8 +227,7 @@ void StereoVision::calibrate(StereoCapture &capture){
             result1 = cvFindChessboardCorners( &frame1, board_sz,&temp1[0], &count1,CV_CALIB_CB_ADAPTIVE_THRESH|CV_CALIB_CB_FILTER_QUADS);
             cvCvtColor( &frame1, gray_fr1, CV_BGR2GRAY );
             //cvEqualizeHist(gray_fr1,gray_fr1);
-            
-            
+                        
             cout << result1 << endl;
 
             //----------------CAM2--------------------------------------------------------------------------------------------------------
@@ -263,10 +267,10 @@ void StereoVision::calibrate(StereoCapture &capture){
 
             capture.capture();
             frame1 = capture.get_left_Frame();
-            cvShowImage("Frame_Left", &frame1);
+            //cvShowImage("Frame_Left", &frame1);
             
             frame2 = capture.get_right_Frame();
-            cvShowImage("Frame_right", &frame2);
+            //cvShowImage("Frame_right", &frame2);
             
             if(cvWaitKey(15)==27) break;
         }
@@ -276,10 +280,7 @@ void StereoVision::calibrate(StereoCapture &capture){
     capture.stop_cam();
     
     
-    cvDestroyWindow("camera1");
-    cvDestroyWindow("camera2");
-    cvDestroyWindow("corners camera1");
-    cvDestroyWindow("corners camera2");	
+    destroyAllWindows();
     printf("\nDone Capture!");
 
 
@@ -314,6 +315,8 @@ void StereoVision::calibrate(StereoCapture &capture){
         CV_CALIB_FIX_K3, term_crit );
 
     printf("\nDone Calibration");
+    
+  
     //-------------Chinh meo cho anh------------------------------------------
     cvUndistortPoints( &_imagePoints1, &_imagePoints1,&_M1calib, &_D1, 0, &_M1calib );
     cvUndistortPoints( &_imagePoints2, &_imagePoints2,&_M2calib, &_D2, 0, &_M2calib );
@@ -336,20 +339,20 @@ void StereoVision::calibrate(StereoCapture &capture){
     cvInitUndistortRectifyMap(&_M2calib,&_D2,&_R2,&_P2,mx2calib,my2calib);
 
     printf("\nSaving matries for later use ...\n");
-    cvSave("./CalibFile/M1.yml",&_M1calib);
+    cvSave("./CalibFiles/M1.yml",&_M1calib);
 //	cvSave("CalibFile//D1.yml",&_D1);
 //	cvSave("CalibFile//R1.yml",&_R1);
 //	cvSave("CalibFile//P1.yml",&_P1);
-    cvSave("./CalibFile/M2.yml",&_M2calib);
+    cvSave("./CalibFiles/M2.yml",&_M2calib);
 //	cvSave("CalibFile//D2.yml",&_D2);
 //	cvSave("CalibFile//R2.yml",&_R2);
 //	cvSave("CalibFile//P2.yml",&_P2);
-    cvSave("./CalibFile/Q.yml",&_Qcalib);
-    cvSave("./CalibFile/T.yml",&_Tcalib);
-    cvSave("./CalibFile/mx1.yml",mx1calib);
-    cvSave("./CalibFile/my1.yml",my1calib);
-    cvSave("./CalibFile/mx2.yml",mx2calib);
-    cvSave("./CalibFile/my2.yml",my2calib);
+    cvSave("./CalibFiles/Q.yml",&_Qcalib);
+    cvSave("./CalibFiles/T.yml",&_Tcalib);
+    cvSave("./CalibFiles/mx1.yml",mx1calib);
+    cvSave("./CalibFiles/my1.yml",my1calib);
+    cvSave("./CalibFiles/mx2.yml",mx2calib);
+    cvSave("./CalibFiles/my2.yml",my2calib);
    
 }
 
