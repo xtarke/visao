@@ -85,7 +85,7 @@
        <item>
         <widget class="QToolButton" name="toolButtonOpen">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="text">
           <string>Open</string>
@@ -99,6 +99,13 @@
          </property>
          <property name="text">
           <string>Close</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButtonMov">
+         <property name="text">
+          <string>...</string>
          </property>
         </widget>
        </item>

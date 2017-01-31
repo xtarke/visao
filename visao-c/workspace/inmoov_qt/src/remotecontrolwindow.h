@@ -27,6 +27,8 @@ private slots:
     void on_toolButtonClose_clicked();
     void on_toolButtonIncrease_clicked();
     void on_toolButtonDecrease_clicked();
+    void on_toolButtonMov_clicked();
+    
     void on_dialChanged();
     
     void on_received_serial_data();
@@ -40,7 +42,7 @@ private:
     
     void fillServoParameters();
     
-    int8_t ServoPos[2];
+    uint8_t ServoPos[2];
     
 };
 

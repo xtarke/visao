@@ -30,7 +30,7 @@ qt5_wrap_ui(inmoov_qt_SRC src/inmoov_qt.ui src/serialsettingsdialog.ui src/remot
 add_executable(inmoov_qt ${inmoov_qt_SRC})
 
 # Use the Widgets module from Qt 5.
-target_link_libraries(inmoov_qt ${OpenCV_LIBS} Qt5::Widgets)
+target_link_libraries(inmoov_qt ${OpenCV_LIBS} Qt5::Widgets Qt5Test)
 
 # Install the executable
 install(TARGETS inmoov_qt DESTINATION bin)
