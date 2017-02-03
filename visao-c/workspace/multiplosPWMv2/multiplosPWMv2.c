@@ -1,11 +1,24 @@
+/*
+ * multiplosPWM_v2.c
+ *
+ *  Created on: Jan 17, 2017
+ *      Author: sergio
+ */
+
+
+
 /* -----------------------------------------------------------------------------
  * Project:		Multiplos PWM v2
  * File:		multiplosPWMv2.c
  * Author:		Sergio L Martins Jr
- * Created:		2017-01-13
- * Modified:	2017-01-13
+ * Created:		2017-01-17
+ * Modified:	2017-02-03
  * Version:		1.0
- * Purpose:		Programa para controlar multiplos servo motores. Baseado no ApplicationNote Atmel-8020
+ * Purpose:		Programa para controlar multiplos servo motores.
+ *				Separa os pwm's e os divide no tempo. Limitado a no maximo 4 servos.
+ *				Programa teste para 2 servos, Necessário expandir e deixar genérico
+ *
+ *				Adicionado o medidor de corrente por integração
  * -------------------------------------------------------------------------- */
 
 // --------------------------------------------------------------------------------
@@ -19,101 +32,354 @@
 #include "globalDefines.h"
 #include "ATmega328.h"
 
+#include <string.h>
+
 // --------------------------------------------------------------------------------
 //  Project definitions -----------------------------------------------------------
+#define DATA_MAX_SIZE	50
 
-#define CHMAX 4						// maximum number of PWM channels
-#define DEFAULT_VALUE_PWM 0x80		// default PWM value at start up for all channels
+#define PWM_REG_DDR		DDRB
+#define PWM_REG_PORT	PORTB
+#define PWM_REG_PIN		PINB
+#define PWM0_BIT		PB0
+#define PWM1_BIT		PB1
+
+#define BUFFER_SIZE 64		// Se for 128 ou mais é necessário atentar ao valor máximo da váriavel de acumulo do adc
+#define DIV_VALUE	6		// Valor para deslocamento e cálculo da média
+
+#define MEASURE_WINDOW	7	// Controle da janela de acumulo e atualização do buffer
+#define CURRENT_LIMIT	163	// Valor maximo do ADC, relativo a tensão
+
+enum {HEAD_H, HEAD_V};
 
 // --------------------------------------------------------------------------------
 //  New Data Types ----------------------------------------------------------------
 
-typedef union flags{
+typedef union flagsPWM{
 	struct{
-		uint8 unusedBits		: 8;
+		uint8 pwmState		: 2;	// Para saber em qual pwm está
+		uint8 unusedBits	: 6;
 	};
 	uint8 allFlags;
-} flags_t;
+} flagsPWM_t;
+
+typedef union flagsADC{
+	struct{
+		uint8 adcCount		: 3;	// Ctrl contagem - conta até 14
+		uint8 adcChannel	: 1;	// Guarda informação qual channel selecionado
+		uint8 unusedBits	: 4;
+	};
+	uint8 allFlags;
+} flagsADC_t;
 
 // --------------------------------------------------------------------------------
 //  Global variables --------------------------------------------------------------
+volatile flagsPWM_t ctrlPwm;
+uint16 pwmRegValue[4];
+uint8 receiveWd;
 
-volatile flags_t dataFlag;
-unsigned char compare[CHMAX];
-volatile unsigned char comp_buff[CHMAX];
+volatile uint16 adcCurrent;
+volatile flagsADC_t ctrlAdc;
 
 // --------------------------------------------------------------------------------
 // Functions ----------------------------------------------------------------------
-void init_pwm(void);
+void receivePackageData(uint8 *index, uint8 *data, uint8 *size, uint8 *ready);
+uint8 buildTransmitPackageData(uint8 *packageData, uint8 *data, uint8 dataSize);
 
 // --------------------------------------------------------------------------------
 //  Main function -----------------------------------------------------------------
 
 int main(void)
-{	
+{
 	// Local variables
-	
+	// Pwm variables
+	uint16 minCount[4]; // Valores em microSegundos
+	uint16 maxCount[4];
+	uint8  percent[4];
+	uint16 aux16;
+	// Package variables
+	uint8 packageData[DATA_MAX_SIZE];
+	uint8 packageIndex = 0;
+	uint8 packageReady = 0;
+	uint8 packageSize = 0;
+	uint8 packageAux[DATA_MAX_SIZE];
+	uint8 i;
+
+	uint8 buffer[2][BUFFER_SIZE]; // 2 buffer para armazenar os valores de 2 servos
+	memset(buffer[HEAD_H],0,BUFFER_SIZE);
+	memset(buffer[HEAD_V],0,BUFFER_SIZE);
+	uint8 nextWrite[2];	// Aponta pro próximo local a ser escrito
+	memset(nextWrite, 0, 2);
+//	uint8 nextRead = 0;		// Desnecessário pq vai ser sempre escrito em cima
+	uint16 totalBuffer[2];		// 16 bits são suficientes para até 64 valores de janela
+	memset(totalBuffer, 0, 2);
+	uint16 meanBuffer[2];
+	memset(meanBuffer, 0, 2);
+	uint8 aux8;
+
 	// Global variables initialization
-	
+	ctrlPwm.allFlags = 0;
+	setBit(ctrlPwm.allFlags, 0);
+	// Nesse programa vou utilizar 2 servos
+	for(i=0; i<2;i++){
+		minCount[i] = 900;
+		maxCount[i] = 2100;
+		percent[i] = 50;
+		aux16 = (maxCount[i]-minCount[i])/100;
+		aux16 = aux16*percent[i];
+		aux16 = aux16 + minCount[i];
+		aux16 = aux16*2;
+		pwmRegValue[i] = aux16+2500+20000*i;
+	}
+	// Receive
+	receiveWd = 0;
+	// ADC
+	adcCurrent = 0;
+	ctrlAdc.adcChannel = HEAD_H;
+
 	// PWM initialization
-	setMask(DDRB, 0b1111, 0);	// Seta pinos do pwm como sa�da
-	init_pwm();
-	
-	// Timer1 initialization	
-	timer1SetCompareAValue(1250);
-	timer1Config(TIMER_B_MODE_FAST_PWM_OCRA, TIMER_A_PRESCALER_OFF);
-	timer1ActivateOverflowInterrupt();
-	
+	setBit(PWM_REG_DDR, PWM0_BIT);		// Seta pinos do pwm como saída
+	setBit(PWM_REG_DDR, PWM1_BIT);
+
+	// USART Configuration
+	usartConfig(USART_MODE_ASYNCHRONOUS, USART_BAUD_9600, USART_DATA_BITS_8, USART_PARITY_NONE, USART_STOP_BIT_SINGLE);
+	usartEnableReceiver();
+	usartEnableTransmitter();
+	usartActivateReceptionCompleteInterrupt();
+	usartStdio();
+
+//	printf("Teste USART\n");
+
+	// Timer 0 	- ADC trigger
+	//timer0SetCompareAValue(255);
+	timer0Config(TIMER_A_MODE_NORMAL, TIMER_A_PRESCALER_1024);
+
+	// Timer1 initialization
+	timer1SetCompareAValue(40000);	//
+	timer1SetCompareBValue(2500);
+	timer1Config(TIMER_B_MODE_CTC, TIMER_A_PRESCALER_8);
+	timer1ActivateCompareBInterrupt();
+
+	//Timer2 initialization - WatchDog recepção
+	timer2Config(TIMER_A_MODE_NORMAL, TIMER_B_PRESCALER_1024);	// Configura o timer
+	timer2Config(TIMER_A_MODE_NO_CHANGE, TIMER_B_CLOCK_DISABLE);
+	timer2SetCounterValue(0);
+	timer2ActivateOverflowInterrupt();
+
+	// ADC configuration
+	adcConfig(ADC_MODE_AUTO_TIMER0_OVERFLOW, ADC_REFERENCE_INTERNAL, ADC_PRESCALER_128);
+	adcDisableDigitalInput(0b000011);
+	adcSelectChannel(ADC_CHANNEL_0);
+	adcActivateInterrupt();
+	adcEnable();
+
 //setBit(DDRD, PD2);
 //clrBit(PORTD, PD2);
-	
+
 	sei();
-	
-	comp_buff[0] = 0x3F;
-	comp_buff[1] = 0x7E;
-	comp_buff[2] = 0xBD;
-	comp_buff[3] = 23;
     while(1){
-		;
+    	// Recepção dos pacotes
+    	if(packageReady == 0){
+			receivePackageData(&packageIndex, packageData, &packageSize, &packageReady);
+if(receiveWd){
+	receiveWd=0;
+	printf("-- WatchDog Recepção --\n");
+	packageIndex= 0;
+	packageSize = 0;
+	packageReady = 0;
+	timer2Config(TIMER_A_MODE_NO_CHANGE, TIMER_B_CLOCK_DISABLE);
+	timer2SetCounterValue(0);
+}
+		}
+    	// Processamento dos pacotes
+		if(packageReady){
+			// Maquina de tratamento do pacote
+
+			packageReady = 0;
+			packageIndex = 0;
+
+			if(packageData[0]==0x01){
+				percent[packageData[1]] = packageData[2];
+
+				aux16 = (maxCount[packageData[1]]-minCount[packageData[1]])/100;
+				aux16 = aux16*percent[packageData[1]];
+				aux16 = aux16 + minCount[packageData[1]];
+				aux16 = aux16*2;
+				pwmRegValue[packageData[1]] = aux16 + + 2500 + (20000*packageData[1]);
+
+// Transmissão utilizando buildTransmitPackage
+packageAux[0] = packageData[0];		// Sem uso de for pra maior velocidade
+packageAux[1] = packageData[1];
+packageAux[2] = packageData[2];
+packageSize = buildTransmitPackageData(packageData, packageAux, packageSize);
+i=0;
+while(i<packageSize){
+	usartTransmit(packageData[i++]);
+}
+//printf("-- PWM = %d pct = %d -- \n", packageData[1], percent[packageData[1]]);
+
+				// necessário ajustar para generico
+//				if(pwmRegValue[packageData[1]]<(minCount[packageData[1]]+2500)) pwmRegValue[packageData[1]]=minCount[packageData[1]];
+//				if(pwmRegValue[packageData[1]]>(maxCount[packageData[1]]+2500)) pwmRegValue[packageData[1]]=maxCount[packageData[1]];
+			}
+		} // End processamento pacotes
+
+		// Processamento ADC
+		if(ctrlAdc.adcCount>=MEASURE_WINDOW){
+			ctrlAdc.adcCount=0;
+			// Replace value in buffer and update total value
+			totalBuffer[(ctrlAdc.adcChannel)] -= buffer[(ctrlAdc.adcChannel)][nextWrite[ctrlAdc.adcChannel]];
+			aux8 = (adcCurrent>>2);
+			buffer[ctrlAdc.adcChannel][nextWrite[ctrlAdc.adcChannel]] = aux8;
+			totalBuffer[ctrlAdc.adcChannel] += buffer[ctrlAdc.adcChannel][nextWrite[ctrlAdc.adcChannel]];
+			// Update pointer(?)
+			nextWrite[ctrlAdc.adcChannel] == (BUFFER_SIZE-1) ? nextWrite[ctrlAdc.adcChannel]=0 : nextWrite[ctrlAdc.adcChannel]++;
+			// Get mean value
+			meanBuffer[ctrlAdc.adcChannel] = (totalBuffer[ctrlAdc.adcChannel] >> DIV_VALUE);
+
+			if(ctrlAdc.adcChannel == HEAD_H){
+				ctrlAdc.adcChannel = HEAD_V;
+				adcSelectChannel(ADC_CHANNEL_1);
+			}else{
+				ctrlAdc.adcChannel = HEAD_H;
+				adcSelectChannel(ADC_CHANNEL_0);
+			}
+
+			// Debug
+//			if(nextWrite[ctrlAdc.adcChannel]%10 == 0){
+//				printf("adcCurrent = %u\n\r",adcCurrent);
+//				printf("nextValue = %u\n\r",(uint8)(adcCurrent>>2));
+//				printf("pointer = %u - totalBuffer = %u\n\r", nextWrite[ctrlAdc.adcChannel], totalBuffer[ctrlAdc.adcChannel]);
+//				printf("Buffer[%d] = %u\n\r", ctrlAdc.adcChannel, buffer[ctrlAdc.adcChannel][nextWrite[ctrlAdc.adcChannel]]);
+//				printf("media = %u\n\r", meanBuffer[ctrlAdc.adcChannel]);
+//			}
+		}
+		if(meanBuffer[ctrlAdc.adcChannel]>CURRENT_LIMIT){
+			// Limite de corrente atingido
+		}
     }
 }
 
 // --------------------------------------------------------------------------------
 //  Handlers ----------------------------------------------------------------------
 
-ISR(TIMER1_OVF_vect){
-	static unsigned char softcount = 0xFF;
-		
-	if (++softcount == 0) {       // increment modulo 256 counter and update
-		// the compare values only when counter = 0.
-		compare[0] = comp_buff[0]; // verbose code for speed
-		compare[1] = comp_buff[1];
-		compare[2] = comp_buff[2];
-		compare[3] = comp_buff[3]; // last element should equal CHMAX - 1
+USART_RECEIVER_BUFFER_FUNCTION_HANDLER;
 
-		setMask(PORTB, 0b1111, 0);	// Set all pwms to high
-	}
-	
-	// clear port pin on compare match (executed on next interrupt)
-	if (compare[0] == softcount)
-		clrBit(PORTB, PB0);
-	if (compare[1] == softcount)
-		clrBit(PORTB, PB1);
-	if (compare[2] == softcount)
-		clrBit(PORTB, PB2);
-	if (compare[3] == softcount)
-		clrBit(PORTB, PB3);
+ISR(ADC_vect)
+{
+	(ctrlAdc.adcCount)++;
+	adcCurrent = ADC;
 
+//	Seria feito assim se todas as medidas fossem analisadas (limitador de pico)
+//	if(ctrlAdc.adcChannel == HEAD_H){
+//		adcSelectChannel(ADC_CHANNEL_1);
+//		ctrlAdc.adcChannel = HEAD_V;
+//	}else{
+//		adcSelectChannel(ADC_CHANNEL_0);
+//		ctrlAdc.adcChannel = HEAD_H;
+//	}
+
+	setBit(TIFR0, TOV0);
 }
 
-void init_pwm(void)
+ISR(TIMER1_COMPB_vect)
 {
-	unsigned char i, pwm;
-	
-	pwm = DEFAULT_VALUE_PWM;
-	
-	for(i=0; i<CHMAX; i++){
-		compare[i] = pwm;	// set default PWM values
-		comp_buff[i] = pwm;
+	if(isBitSet(ctrlPwm.allFlags, 0)){
+		if(isBitClr(PWM_REG_PIN, PWM0_BIT)){
+			setBit(PWM_REG_PORT, PWM0_BIT);
+			timer1SetCompareBValue(pwmRegValue[0]);
+		}else{
+			clrBit(PWM_REG_PORT, PWM0_BIT);
+			ctrlPwm.allFlags = ctrlPwm.allFlags<<1;
+			timer1SetCompareBValue(22500);
+		}
 	}
+	else if(isBitSet(ctrlPwm.allFlags, 1)){
+		if(isBitClr(PWM_REG_PIN, PWM1_BIT)){
+			setBit(PWM_REG_PORT, PWM1_BIT);
+			timer1SetCompareBValue(pwmRegValue[1]);
+		}else{
+			clrBit(PWM_REG_PORT, PWM1_BIT);
+			ctrlPwm.allFlags = 1;
+			timer1SetCompareBValue(2500);
+		}
+	}
+}
+
+ISR(TIMER2_OVF_vect)
+{
+	receiveWd = 1;
+}
+
+void receivePackageData(uint8 *index, uint8 *data, uint8 *size, uint8 *ready)
+{
+	uint8 aux8;
+	uint8 i;
+
+	while(!usartIsReceiverBufferEmpty()){
+		aux8 = usartGetDataFromReceiverBuffer();
+timer2Config(TIMER_A_MODE_NO_CHANGE, TIMER_B_PRESCALER_1024);
+		switch(*index){
+			case 0:		// Start delimiter
+				if(aux8 == 0x7E){
+					(*index)++;
+timer2SetCounterValue(0);
+setBit(PORTB, PB0);
+				}
+				break;
+			case 1:		// Size
+timer2SetCounterValue(0);
+				*size = aux8;
+				(*index)++;
+				break;
+			default:
+timer2SetCounterValue(0);
+				if(*index < ((*size) + 2)){
+					data[(*index) - 2] = aux8;
+					(*index)++;
+				}else{
+					for(i=0; i<(*index-2); i++){
+						aux8 += data[i];
+					}
+					if(aux8 != 0xFF){
+printf("-- Erro no CheckSum --\n");
+						*ready = 0;
+						*index = 0;
+						*size = 0;
+					}
+					else{
+						*ready = 1;
+						*index = 0;
+timer2Config(TIMER_A_MODE_NO_CHANGE, TIMER_B_CLOCK_DISABLE);
+timer2SetCounterValue(0);
+					}
+				}
+				break;
+		} // end switch(packageIndex)
+	} // end while(!usartIsReceiverBufferEmpty())
+}
+
+// packageData - Local onde dados serão armazenados
+// id - O ID do pacote recebido acrescido de 0x7F
+// data - Os dados do pacote (eco)
+// dataSize - Tamanho dos dados a serem enviados
+// retorno - Tamanho do pacote montado
+uint8 buildTransmitPackageData(uint8 *packageData, uint8 *data, uint8 dataSize)
+{
+	uint8 size=2; // 0 é 0x7E e 1 é size
+	uint8 i, checkSum;
+
+	packageData[0] = 0x7E;
+	packageData[size++] = data[0] + 0x7F;
+	for(i=1; i<dataSize; i++){
+		packageData[size++] = data[i];
+	}
+	checkSum = 0xFF;
+	for(i=2; i<size; i++){
+		checkSum -= packageData[i];
+	}
+	packageData[size++] = checkSum-0x7E;
+	packageData[1] = size-3;	// Lenght
+
+	return size;
 }
