@@ -215,6 +215,9 @@ void RemoteControlWindow::on_toolButtonMov_clicked(){
     
     }
     
+    return; 
+    
+    
     std::cout << "-------------------" << std::endl;
     
     
