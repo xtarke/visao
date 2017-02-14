@@ -19,6 +19,7 @@ set(inmoov_qt_SRC
   src/StereoVision.cpp
   src/FaceDetection.cpp
   src/serialsettingsdialog.cpp
+  src/Communication.cpp
   src/remotecontrolwindow.cpp
 )
 

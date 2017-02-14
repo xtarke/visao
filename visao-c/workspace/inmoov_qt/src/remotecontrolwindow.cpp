@@ -6,6 +6,8 @@
 
 #include <QtTest/QSignalSpy>
 
+#include "Communication.h"
+
 #include <unistd.h>
 
 RemoteControlWindow::RemoteControlWindow(QWidget *parent,  QSerialPort *serial_) :
@@ -62,8 +64,11 @@ void RemoteControlWindow::on_toolButtonOpen_clicked(){
         if (!serial->open(QIODevice::ReadWrite)) {
             error_message->showMessage("Could not open serial");
         }
-    else
+    else{
         ui->toolButtonClose->setEnabled(true);
+        ui->toolButtonIncrease->setEnabled(true);
+        
+    }
 }
 
 void RemoteControlWindow::on_toolButtonClose_clicked()
@@ -77,9 +82,11 @@ void RemoteControlWindow::on_toolButtonClose_clicked()
 void RemoteControlWindow::on_toolButtonIncrease_clicked(){
     QByteArray data;
     
+    Communication comm(*serial);
+    
     int currentIndex = ui->comboBoxServoList->currentIndex();    
     int ServoId = ui->comboBoxServoList->itemData(currentIndex).toInt();
-        
+    
     if (!serial->isOpen()){
         error_message->showMessage("Serial port is not open!");     
         return;
@@ -100,7 +107,10 @@ void RemoteControlWindow::on_toolButtonIncrease_clicked(){
     data[4] = ServoPos[ServoId];                        //Dados - DT (Porcentagem)
     data[5] = 0xff -  data[2] -  data[3] - data[4];     //Checksum
 
-    serial->write(data); 
+    
+    comm.send_data(data);
+    
+    
     ui->dial->setValue(int(ServoPos[ServoId]));
 }
 
@@ -144,9 +154,6 @@ void RemoteControlWindow::fillServoParameters()
 void RemoteControlWindow::on_received_serial_data(){    
     QByteArray data = serial->readAll();
    
-    
-   // QString juca ..
-    
     //ui->plainTextEdit->insertPlainText(data);
 }
 
