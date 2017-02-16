@@ -21,6 +21,7 @@ set(inmoov_qt_SRC
   src/serialsettingsdialog.cpp
   src/Communication.cpp
   src/remotecontrolwindow.cpp
+  src/robot/Head.cpp
 )
 
 # Create code from a list of Qt designer ui files.

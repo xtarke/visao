@@ -7,6 +7,7 @@
 #include <QtTest/QSignalSpy>
 
 #include "Communication.h"
+#include "robot/Head.h"
 
 #include <unistd.h>
 
@@ -65,8 +66,10 @@ void RemoteControlWindow::on_toolButtonOpen_clicked(){
             error_message->showMessage("Could not open serial");
         }
     else{
+        serial->readAll();
         ui->toolButtonClose->setEnabled(true);
         ui->toolButtonIncrease->setEnabled(true);
+        ui->toolButtonDecrease->setEnabled(true);
         
     }
 }
@@ -83,6 +86,7 @@ void RemoteControlWindow::on_toolButtonIncrease_clicked(){
     QByteArray data;
     
     Communication comm(*serial);
+    Head head(comm);
     
     int currentIndex = ui->comboBoxServoList->currentIndex();    
     int ServoId = ui->comboBoxServoList->itemData(currentIndex).toInt();
@@ -98,28 +102,26 @@ void RemoteControlWindow::on_toolButtonIncrease_clicked(){
         ServoPos[ServoId] = 100;
         return;
     }
-        
-    data.resize(6);
-    data[0] = 0x7e;                                     //Inicializador - ST
-    data[1] = 0x03;                                     //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    data[2] = 0x01;                                     //Identificador de comando - ID - 01 Manda Porcentagem Servo
-    data[3] = (int8_t)ServoId-1;                        //Dados - DT (Adress do servo)
-    data[4] = ServoPos[ServoId];                        //Dados - DT (Porcentagem)
-    data[5] = 0xff -  data[2] -  data[3] - data[4];     //Checksum
-
     
-    comm.send_data(data);
+    if (ServoId == 1)    
+        head.move_h(ServoPos[ServoId]);
+    else
+        head.move_v(ServoPos[ServoId]);
     
     
     ui->dial->setValue(int(ServoPos[ServoId]));
 }
 
 void RemoteControlWindow::on_toolButtonDecrease_clicked(){  
+        
     QByteArray data;
+    
+    Communication comm(*serial);
+    Head head(comm);
     
     int currentIndex = ui->comboBoxServoList->currentIndex();    
     int ServoId = ui->comboBoxServoList->itemData(currentIndex).toInt();
-        
+    
     if (!serial->isOpen()){
         error_message->showMessage("Serial port is not open!");     
         return;
@@ -127,22 +129,18 @@ void RemoteControlWindow::on_toolButtonDecrease_clicked(){
     
     ServoPos[ServoId]-=10;
 
-    if (ServoPos[ServoId] <= 0){ 
-        ServoPos[ServoId] = 0;
+    if (ServoPos[ServoId] > 100){
+        ServoPos[ServoId] = 100;
         return;
     }
-        
-    data.resize(6);
-    data[0] = 0x7e;                                     //Inicializador - ST
-    data[1] = 0x03;                                     //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    data[2] = 0x01;                                     //Identificador de comando - ID - 01 Manda Porcentagem Servo
-    data[3] = (int8_t)ServoId-1;                          //Dados - DT (Adress do servo)
-    data[4] = ServoPos[ServoId];                        //Dados - DT (Porcentagem)
-    data[5] = 0xff -  data[2] -  data[3] - data[4];     //Checksum
     
-    serial->write(data);
+    if (ServoId == 1)    
+        head.move_h(ServoPos[ServoId]);
+    else
+        head.move_v(ServoPos[ServoId]);
+    
+    
     ui->dial->setValue(int(ServoPos[ServoId]));
-    
 }
 
 void RemoteControlWindow::fillServoParameters()
@@ -159,8 +157,9 @@ void RemoteControlWindow::on_received_serial_data(){
 
 void RemoteControlWindow::on_dialChanged(){
     
-    QByteArray data;
-    
+    Communication comm(*serial);
+    Head head(comm);
+        
     int currentIndex = ui->comboBoxServoList->currentIndex();    
     int ServoId = ui->comboBoxServoList->itemData(currentIndex).toInt();
         
@@ -171,18 +170,10 @@ void RemoteControlWindow::on_dialChanged(){
     
     ServoPos[ServoId] = (uint8_t)ui->dial->value();
     
-    
-    std::cout<<(uint)ServoPos[ServoId]<<std::endl;
-    
-    data.resize(6);
-    data[0] = 0x7e;                                     //Inicializador - ST
-    data[1] = 0x03;                                     //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    data[2] = 0x01;                                     //Identificador de comando - ID - 01 Manda Porcentagem Servo
-    data[3] = (int8_t)ServoId-1;                        //Dados - DT (Adress do servo)
-    data[4] = ServoPos[ServoId];                        //Dados - DT (Porcentagem)
-    data[5] = 0xff -  data[2] -  data[3] - data[4];     //Checksum
-    
-    serial->write(data);
+    if (ServoId == 1)    
+        head.move_h(ServoPos[ServoId]);
+    else
+        head.move_v(ServoPos[ServoId]);
         
 }
 

@@ -17,23 +17,34 @@
  * 
  */
 
-#ifndef COMMUNICATION_H
-#define COMMUNICATION_H
+#ifndef HEAD_H
+#define HEAD_H
 
-#include <QtSerialPort/QtSerialPort>
+#include "../Communication.h"
 
-class Communication
+#include <stdint.h>
+
+class Head
 {
 private:
-    QSerialPort *serial;
-        
+    uint8_t h_pos = 50;
+    uint8_t v_pos = 50;
+    
+    /* Command id: 1 -> Set servo position (0 to 100% where 50% is center ) */
+    const uint8_t PKG_CMD_ID = 1;
+    /* Servo addresses */
+    const uint8_t PKG_SERVO_ADDR_H = 0x00;
+    const uint8_t PKG_SERVO_ADDR_V = 0x01;
+    
+    Communication *comm;
+    
 public:
-    Communication(QSerialPort &serial_);
     
-    bool send_data(QByteArray data);
+    bool move_v(uint8_t percent);
+    bool move_h(uint8_t percent);
     
-    QByteArray make_pgk(QByteArray data);
-    
+    Head(Communication &comm_) {comm = &comm_;};
+        
 };
 
-#endif // COMMUNICATION_H
+#endif // HEAD_H

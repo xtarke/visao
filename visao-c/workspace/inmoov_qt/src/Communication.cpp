@@ -33,6 +33,9 @@ bool Communication::send_data(QByteArray data)
     /* Check if device is open */
     if (!serial->isOpen())
         return false;
+    
+    /* Discard buffered data */
+    serial->readAll();
         
     /* Send and flush */    
     serial->write(data);
@@ -42,27 +45,42 @@ bool Communication::send_data(QByteArray data)
     /* ACK check */
     serial->waitForReadyRead(10);
 
+    
     QByteArray requestData = serial->readAll();
         
+    /* Receive 6 bytes as reply */
     while (serial->waitForReadyRead(10)){
        requestData += serial->readAll();
     
-       //std::cout << "lalal" << std::endl;
-       
-        if (requestData.size() == 6)
+        if (requestData.size() == data.size())
             break;
-    
     } 
         
     std::cout << "-------------------" << std::endl;
     
     for (int i=0; i < requestData.size(); i++){
         //std::cout << "Saida" << std::endl;
-        std::cout << std::hex << (uint)requestData[i] << std::endl;
+        std::cout << i << "  :   " << std::hex << (uint)requestData[i] << std::endl;
         
     }
     
     return true;
     
 }
+
+
+QByteArray Communication::make_pgk(QByteArray data)
+{
+    QByteArray package;
+    
+    package += 0x7e;                                     //Inicializador - ST
+    package += data.size();                               //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
+    package += data[0];                                    //Identificador de comando - ID - 01 Manda Porcentagem Servo
+    package += data[1];                                   //Dados - DT (Adress do servo)
+    package += data[2];                                  //Dados - DT (Porcentagem)
+    package += 0xff -  package[2] -  package[3] - package[4];     //Checksum
+    
+    return package;    
+}
+
 
