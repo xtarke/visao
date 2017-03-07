@@ -35,8 +35,7 @@ bool Head::move_h(uint8_t percent)
     /* Package construction */
     package = comm->make_pgk(data);
     
-    /* 
-    for (int i=0; i < package.size(); i++)
+    /* for (int i=0; i < package.size(); i++)
         std::cout << hex << (int)package[i] << std::endl; */
         
     /* Send data */
