@@ -213,12 +213,16 @@ void RemoteControlWindow::update_servo_current(){
     current = comm.send_rcv_data(package);
     
     
-    std::cout << "-----------------------\n";
+//     std::cout << "-----------------------\n";
+//     
+//     for (int i=0; i < current.size(); i++)
+//         std::cout << hex << (int)current[i] << std::endl;
+//     
+//     std::cout << "-----------------------\n";
     
-    for (int i=0; i < current.size(); i++)
-        std::cout << hex << (int)current[i] << std::endl;
+    ui->lcdNumber->display((int)current[4]);
     
-    std::cout << "-----------------------\n";
+    
     
 }
 
