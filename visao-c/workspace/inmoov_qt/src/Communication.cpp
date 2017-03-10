@@ -68,6 +68,38 @@ bool Communication::send_data(QByteArray data)
     
 }
 
+QByteArray Communication::send_rcv_data(QByteArray data){
+        
+    /* Check if device is open */
+//     if (!serial->isOpen())
+//         return false;
+    
+    /* Discard buffered data */
+    serial->readAll();
+        
+    /* Send and flush */    
+    serial->write(data);
+    serial->flush();
+    
+  
+    /* ACK check */
+    serial->waitForReadyRead(10);
+
+    
+    QByteArray requestData = serial->readAll();
+        
+    /* Receive 6 bytes as reply */
+    while (serial->waitForReadyRead(10)){
+       requestData += serial->readAll();
+    
+        if (requestData.size() == data.size())
+            break;
+    } 
+        
+
+    return requestData;   
+}
+
 
 QByteArray Communication::make_pgk(QByteArray data)
 {

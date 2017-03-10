@@ -74,6 +74,13 @@
       <widget class="QPlainTextEdit" name="plainTextEdit"/>
      </item>
      <item>
+      <widget class="QLCDNumber" name="lcdNumber">
+       <property name="smallDecimalPoint">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
         <widget class="QToolButton" name="toolButtonPort">
@@ -105,7 +112,7 @@
        <item>
         <widget class="QToolButton" name="toolButtonMov">
          <property name="text">
-          <string>...</string>
+          <string>Srv I</string>
          </property>
         </widget>
        </item>

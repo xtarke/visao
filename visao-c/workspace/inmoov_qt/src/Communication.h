@@ -31,6 +31,7 @@ public:
     Communication(QSerialPort &serial_);
     
     bool send_data(QByteArray data);
+    QByteArray send_rcv_data(QByteArray data);
     
     QByteArray make_pgk(QByteArray data);
     

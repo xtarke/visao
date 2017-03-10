@@ -29,9 +29,9 @@ private slots:
     void on_toolButtonDecrease_clicked();
     void on_toolButtonMov_clicked();
     
-    void on_dialChanged();
-    
+    void on_dialChanged();    
     void on_received_serial_data();
+    void update_servo_current();
 
 private:
     Ui::RemoteControlWindow *ui;
@@ -39,6 +39,9 @@ private:
     SettingsDialog *settings;    
     QSerialPort *serial;
     QErrorMessage *error_message;
+    
+    QTimer *timer;
+
     
     void fillServoParameters();
     

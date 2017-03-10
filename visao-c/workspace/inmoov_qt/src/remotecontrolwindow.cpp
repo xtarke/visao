@@ -24,13 +24,17 @@ RemoteControlWindow::RemoteControlWindow(QWidget *parent,  QSerialPort *serial_)
     
     memset(ServoPos, 50 , sizeof(ServoPos));
     
+    timer = new QTimer(this);
+    
 //     connect(ui->toolButtonPort, SIGNAL (clicked()), this, SLOT (on_toolButtonPort_clicked()));
 //     connect(ui->toolButtonOpen, SIGNAL (clicked()), this, SLOT (on_toolButtonOpen_clicked()));
 //     connect(ui->toolButtonIncrease, SIGNAL (clicked()), this, SLOT (on_toolButtonIncrease_clicked()));
 //     connect(ui->toolButtonDecrease, SIGNAL (clicked()), this, SLOT (on_toolButtonDecrease_clicked()));
 //     
     connect(ui->dial, SIGNAL(valueChanged(int)), this, SLOT (on_dialChanged()));    
-//    connect(serial, SIGNAL(readyRead()), this, SLOT(on_received_serial_data()));
+
+    connect(timer, SIGNAL(timeout()), this, SLOT(update_servo_current()));
+    
     
     fillServoParameters();
     
@@ -178,263 +182,44 @@ void RemoteControlWindow::on_dialChanged(){
 }
 
 void RemoteControlWindow::on_toolButtonMov_clicked(){
-    QByteArray data;
-    QSignalSpy spy(serial, SIGNAL(readyRead()));
+ 
     
-    if (!serial->isOpen()){
-        error_message->showMessage("Serial port is not open!");     
-        return;
-    }
+    std::cout << "\ttimer on ";
     
-    data.resize(6);
-    data[0] = 0x7E;                                     //Inicializador - ST
-    data[1] = 0x03;                                     //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    data[2] = 0x01;                                     //Identificador de comando - ID - 01 Manda Porcentagem Servo
-    data[3] = 0x01;                                   //Dados - DT (Adress do servo)
-    data[4] = 0x64;                                      //Dados - DT (Porcentagem)
-    data[5] = 0xff - data[2] - data[3] - data[4];       //Checksum    
-    
-    serial->write(data);
-    serial->flush();
-    
-    int j, i = 0;
-   
-    serial->waitForReadyRead(10);
-
-    QByteArray requestData = serial->readAll();
-        
-    while (serial->waitForReadyRead(10)){
-       requestData += serial->readAll();
-    
-       //std::cout << "lalal" << std::endl;
-       
-        if (requestData.size() == 6)
-            break;
-    
-    }
-    
-    return; 
-    
-    
-    std::cout << "-------------------" << std::endl;
-    
-    
-    for (i=0; i < requestData.size(); i++){
-        //std::cout << "Saida" << std::endl;
-        std::cout << std::hex << (uint)requestData[i] << std::endl;
-        
-    }
-    
-        
-//     return;        
-    
-//     QByteArray dataReceived;
-//     
-//     std::cout << "Antes" << std::endl;
-//     
-//    
-    
-//     do {
-//         spy.wait();
-//         
-//         dataReceived = serial->readAll();
-//         
-// //         ui->plainTextEdit->insertPlainText(dataReceived);
-// 
-//         //std::cout << (int)dataReceived.size() << std::endl;
-// 
-//         
-//         
-// j=0;
-// while(j<dataReceived.size()){
-// //     switch(dataReceived[i]){
-// //         case 0x7E:
-// //             break;
-// //         case 0x
-// //     }
-//     
-//     if((j+i)==2){
-//         if(data[i+j] != (char)(dataReceived[j]+0x7F)){
-//             // Erro no pacote
-//         }
-//     }
-//     else if((j+i)==5){
-//         if(data[i+j] != (char)(dataReceived[j]-0x7F)){
-//             // Erro no pacote
-//         }
-//     }
-//     else{
-//         if(data[i+j] != dataReceived[j]){
-//             // Erro no pacote
-//         }
-//     }
-//     
-//     data[i+j] = dataReceived[j];
-//     
-//     j++;
-//     
-//     std::cout << "Enquanto" << std::endl;
-//     std::cout << std::hex << (int)data[i+j] << std::endl;
-// }
-//     i+=j;  
-//     } while (i < 6);
-//     
-//     ui->plainTextEdit->insertPlainText(data);
-//     
-//     std::cout << "Saida" << std::endl;
-//     std::cout << std::hex << (int)data[0] << std::endl;
-//     std::cout << std::hex << (int)data[1] << std::endl;
-//     std::cout << std::hex << (int)data[2] << std::endl;
-//     std::cout << std::hex << (int)data[3] << std::endl;
-//     std::cout << std::hex << (int)data[4] << std::endl;
-//     std::cout << std::hex << (int)data[5] << std::endl;
-//     
-//     return;
-//     
-    
-    //while(serial->bytesToWrite() != 0);
-    
-//     std::cout << "0" << std::endl;
-//     std::cout << serial->bytesToWrite() << std::endl;
-    
-    QThread::sleep(2);
-    
-    data[0] = 0x7e;                                     //Inicializador - ST
-    data[1] = 0x03;                                     //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    data[2] = 0x01;                                     //Identificador de comando - ID - 01 Manda Porcentagem Servo
-    data[3] = 0x01;                                     //Dados - DT (Adress do servo)
-    data[4] = 0x05;                                     //Dados - DT (Porcentagem)
-    data[5] = 0xff -  data[2] -  data[3] - data[4];     //Checksum
-    
-    serial->write(data);
-    serial->flush();
-    
-    while (serial->waitForReadyRead(10)){
-       requestData += serial->readAll();
-    
-       //std::cout << "lalal" << std::endl;
-       
-        if (requestData.size() == 6)
-            break;
-    
-    }
-    
-    std::cout << "1" << std::endl;
-    std::cout << serial << std::endl;
-    
-    QThread::sleep(2);
-    
-    data[0] = 0x7e;                                     //Inicializador - ST
-    data[1] = 0x03;                                     //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    data[2] = 0x01;                                     //Identificador de comando - ID - 01 Manda Porcentagem Servo
-    data[3] = 0x01;                                     //Dados - DT (Adress do servo)
-    data[4] = 0x60;                                     //Dados - DT (Porcentagem)
-    data[5] = 0xff -  data[2] -  data[3] - data[4];     //Checksum
-    
-    serial->write(data);
-    serial->flush();
-    
-    while (serial->waitForReadyRead(10)){
-       requestData += serial->readAll();
-    
-       //std::cout << "lalal" << std::endl;
-       
-        if (requestData.size() == 6)
-            break;
-    
-    }
-    
-    std::cout << "2" << std::endl;
-    std::cout << serial << std::endl;
-    
-    QThread::sleep(2);
-    
-    data[0] = 0x7e;                                     //Inicializador - ST
-    data[1] = 0x03;                                     //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    data[2] = 0x01;                                     //Identificador de comando - ID - 01 Manda Porcentagem Servo
-    data[3] = 0x01;                                     //Dados - DT (Adress do servo)
-    data[4] = 0x32;                                     //Dados - DT (Porcentagem)
-    data[5] = 0xff -  data[2] -  data[3] - data[4];     //Checksum
-    
-    serial->write(data);
-    serial->flush();
-    
-    while (serial->waitForReadyRead(10)){
-       requestData += serial->readAll();
-    
-       //std::cout << "lalal" << std::endl;
-       
-        if (requestData.size() == 6)
-            break;
-    
-    }
-    
-    QThread::sleep(2);
-    
-    data[0] = 0x7e;                                     //Inicializador - ST
-    data[1] = 0x03;                                     //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    data[2] = 0x01;                                     //Identificador de comando - ID - 01 Manda Porcentagem Servo
-    data[3] = 0x00;                                     //Dados - DT (Adress do servo)
-    data[4] = 0x05;                                     //Dados - DT (Porcentagem)
-    data[5] = 0xff -  data[2] -  data[3] - data[4];     //Checksum
-    
-    serial->write(data);
-    serial->flush();
-    
-    while (serial->waitForReadyRead(10)){
-       requestData += serial->readAll();
-    
-       //std::cout << "lalal" << std::endl;
-       
-        if (requestData.size() == 6)
-            break;
-    
-    }
-    
-    QThread::sleep(2);
-    
-    data[0] = 0x7e;                                     //Inicializador - ST
-    data[1] = 0x03;                                     //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    data[2] = 0x01;                                     //Identificador de comando - ID - 01 Manda Porcentagem Servo
-    data[3] = 0x00;                                     //Dados - DT (Adress do servo)
-    data[4] = 0x60;                                     //Dados - DT (Porcentagem)
-    data[5] = 0xff -  data[2] -  data[3] - data[4];     //Checksum
-    
-    serial->write(data);
-    serial->flush();
-    
-    while (serial->waitForReadyRead(10)){
-       requestData += serial->readAll();
-    
-       //std::cout << "lalal" << std::endl;
-       
-        if (requestData.size() == 6)
-            break;
-    
-    }
-    
-    QThread::sleep(2);
-    
-    data[0] = 0x7e;                                     //Inicializador - ST
-    data[1] = 0x03;                                     //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    data[2] = 0x01;                                     //Identificador de comando - ID - 01 Manda Porcentagem Servo
-    data[3] = 0x00;                                     //Dados - DT (Adress do servo)
-    data[4] = 0x32;                                     //Dados - DT (Porcentagem)
-    data[5] = 0xff -  data[2] -  data[3] - data[4];     //Checksum
-    
-    serial->write(data);
-    serial->flush();
-    
-    while (serial->waitForReadyRead(10)){
-       requestData += serial->readAll();
-    
-       //std::cout << "lalal" << std::endl;
-       
-        if (requestData.size() == 6)
-            break;
-    
-    }
-    
-    std::cout << "3" << std::endl;
-    std::cout << serial << std::endl;
+    timer->start(100);    
 }
+
+void RemoteControlWindow::update_servo_current(){
+    
+    Communication comm(*serial);
+    
+    const uint8_t PKG_CMD_ID = 0x11;
+    const uint8_t PKG_SERVO_ADDR_H = 0x00;
+    
+    QByteArray data;
+    QByteArray package;
+    QByteArray current;
+
+    
+    /* Package head data */
+    data += PKG_CMD_ID;
+    data += PKG_SERVO_ADDR_H;
+    
+    /* Package construction */
+    package = comm.make_pgk(data);
+    
+          
+    /* Send data */
+    current = comm.send_rcv_data(package);
+    
+    
+    std::cout << "-----------------------\n";
+    
+    for (int i=0; i < current.size(); i++)
+        std::cout << hex << (int)current[i] << std::endl;
+    
+    std::cout << "-----------------------\n";
+    
+}
+
+
