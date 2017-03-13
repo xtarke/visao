@@ -44,7 +44,6 @@ private:
     QErrorMessage *error_message;
     
     QTimer *timer;
-
     
     void fillServoParameters();
     
