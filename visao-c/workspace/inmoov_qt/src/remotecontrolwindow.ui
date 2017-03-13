@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>231</width>
+    <width>242</width>
     <height>350</height>
    </rect>
   </property>
@@ -119,6 +119,23 @@
       </layout>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButtonYes">
+     <property name="text">
+      <string>Yes</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButtonNo">
+     <property name="text">
+      <string>No</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4"/>
    </item>
   </layout>
  </widget>

@@ -80,12 +80,10 @@ QByteArray Communication::send_rcv_data(QByteArray data){
     /* Send and flush */    
     serial->write(data);
     serial->flush();
-    
-  
+      
     /* ACK check */
     serial->waitForReadyRead(10);
 
-    
     QByteArray requestData = serial->readAll();
         
     /* Receive 6 bytes as reply */
@@ -96,7 +94,6 @@ QByteArray Communication::send_rcv_data(QByteArray data){
             break;
     } 
         
-
     return requestData;   
 }
 
@@ -114,5 +111,3 @@ QByteArray Communication::make_pgk(QByteArray data)
     
     return package;    
 }
-
-

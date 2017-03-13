@@ -31,9 +31,12 @@ RemoteControlWindow::RemoteControlWindow(QWidget *parent,  QSerialPort *serial_)
 //     connect(ui->toolButtonIncrease, SIGNAL (clicked()), this, SLOT (on_toolButtonIncrease_clicked()));
 //     connect(ui->toolButtonDecrease, SIGNAL (clicked()), this, SLOT (on_toolButtonDecrease_clicked()));
 //     
-    connect(ui->dial, SIGNAL(valueChanged(int)), this, SLOT (on_dialChanged()));    
-
+    connect(ui->dial, SIGNAL(valueChanged(int)), this, SLOT (on_dialChanged()));
     connect(timer, SIGNAL(timeout()), this, SLOT(update_servo_current()));
+    connect(ui->pushButtonYes, SIGNAL(clicked()), this, SLOT(on_toolButtonYes_clicked()));
+    connect(ui->pushButtonNo, SIGNAL(clicked()), this, SLOT(on_toolButtonNo_clicked()));
+    
+    
     
     
     fillServoParameters();
@@ -199,7 +202,6 @@ void RemoteControlWindow::update_servo_current(){
     QByteArray data;
     QByteArray package;
     QByteArray current;
-
     
     /* Package head data */
     data += PKG_CMD_ID;
@@ -212,7 +214,6 @@ void RemoteControlWindow::update_servo_current(){
     /* Send data */
     current = comm.send_rcv_data(package);
     
-    
 //     std::cout << "-----------------------\n";
 //     
 //     for (int i=0; i < current.size(); i++)
@@ -221,8 +222,39 @@ void RemoteControlWindow::update_servo_current(){
 //     std::cout << "-----------------------\n";
     
     ui->lcdNumber->display((int)current[4]);
+}
+
+void RemoteControlWindow::on_toolButtonYes_clicked(){
     
+    Communication comm(*serial);
+    Head head(comm);
+     
+    for (int i=0; i < 5; i++){
+        head.move_v(100); 
+        QThread::sleep(1);  
+        head.move_v(0); 
+        QThread::sleep(1);
+
+    }
     
+    head.move_v(50); 
+   
+}
+ 
+void RemoteControlWindow::on_toolButtonNo_clicked(){
+    
+    Communication comm(*serial);
+    Head head(comm);
+     
+    for (int i=0; i < 5; i++){
+        head.move_h(100); 
+        QThread::sleep(1);  
+        head.move_h(0); 
+        QThread::sleep(1);
+
+    }
+    
+    head.move_h(50); 
     
 }
 
