@@ -90,10 +90,10 @@ SettingsDialog::~SettingsDialog()
     delete ui;
 }
 
-SettingsDialog::Settings SettingsDialog::settings() const
-{
-    return currentSettings;
-}
+// SettingsDialog::SerialSettings SettingsDialog::settings() const
+// {
+//     return currentSettings;
+// }
 
 void SettingsDialog::showPortInfo(int idx)
 {

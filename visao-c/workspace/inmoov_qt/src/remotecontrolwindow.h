@@ -6,6 +6,9 @@
 #include <QDialog>
 
 #include "serialsettingsdialog.h"
+#include "Communication.h"
+
+#include "SensorTread.h"
 
 class SettingsDialog;
 
@@ -18,7 +21,7 @@ class RemoteControlWindow : public QDialog
     Q_OBJECT
 
 public:
-    explicit RemoteControlWindow(QWidget *parent = 0,  QSerialPort *serial_ = NULL);
+    explicit RemoteControlWindow(QWidget *parent = 0,  Communication *comm_ = NULL);
     ~RemoteControlWindow();
     
 private slots:
@@ -39,11 +42,14 @@ private slots:
 private:
     Ui::RemoteControlWindow *ui;
     
-    SettingsDialog *settings;    
-    QSerialPort *serial;
+    SettingsDialog *settings;   
+    Communication *comm;
+    
     QErrorMessage *error_message;
     
     QTimer *timer;
+    
+    SensorTread *sensors_thread;
     
     void fillServoParameters();
     

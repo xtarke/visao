@@ -54,6 +54,7 @@
 
 #include <QDialog>
 #include <QtSerialPort/QSerialPort>
+#include "Communication.h"
 
 QT_USE_NAMESPACE
 
@@ -69,7 +70,7 @@ class SettingsDialog : public QDialog
     Q_OBJECT
 
 public:
-    struct Settings {
+    /*struct Settings {
         QString name;
         qint32 baudRate;
         QString stringBaudRate;
@@ -82,12 +83,12 @@ public:
         QSerialPort::FlowControl flowControl;
         QString stringFlowControl;
         bool localEchoEnabled;
-    };
+    };*/
 
     explicit SettingsDialog(QWidget *parent = 0);
     ~SettingsDialog();
 
-    Settings settings() const;
+    Communication::SerialSettings settings() {return currentSettings; };
 
 private slots:
     void showPortInfo(int idx);
@@ -102,7 +103,7 @@ private:
 
 private:
     Ui::SettingsDialog *ui;
-    Settings currentSettings;
+    Communication::SerialSettings currentSettings;
     QIntValidator *intValidator;
 };
 

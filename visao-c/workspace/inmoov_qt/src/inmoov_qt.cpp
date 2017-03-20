@@ -25,16 +25,11 @@ inmoov_qt::inmoov_qt(QWidget *parent) :
     cameras = NULL;
     vision = NULL;
     
-    serial = new QSerialPort(this);    
-    remotecontrol = new RemoteControlWindow(this, serial);
+    /* Setup serial communication */
+    serial = new QSerialPort(this);  
+    comm = new Communication(*serial);
     
-//     serial->setBaudRate(QSerialPort::Baud9600);
-//     serial->setDataBits(QSerialPort::Data8);
-//     serial->setParity(QSerialPort::NoParity);
-//     serial->setStopBits(QSerialPort::OneStop);
-    
-//      pos = 50;
-    
+    remotecontrol = new RemoteControlWindow(this, comm);    
     error_message = new QErrorMessage(parent);
     
     //connect callback functions

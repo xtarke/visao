@@ -6,6 +6,7 @@
 #include <QtSerialPort/QtSerialPort>
 #include "StereoCapture.h"
 #include "StereoVision.h"
+#include "Communication.h"
 
 class SettingsDialog;
 class RemoteControlWindow;
@@ -49,11 +50,11 @@ private:
     RemoteControlWindow *remotecontrol;
     
     StereoCapture *cameras; 
-    StereoVision *vision;
-    
+    StereoVision *vision;    
     QErrorMessage *error_message;
     
     QSerialPort *serial;
+    Communication *comm;
     
 };
 
