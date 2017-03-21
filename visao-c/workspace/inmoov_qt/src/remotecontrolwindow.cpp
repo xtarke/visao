@@ -39,7 +39,7 @@ RemoteControlWindow::RemoteControlWindow(QWidget *parent,  Communication *comm_)
     connect(timer, SIGNAL(timeout()), this, SLOT(update_servo_current()));
     connect(ui->pushButtonYes, SIGNAL(clicked()), this, SLOT(on_toolButtonYes_clicked()));
     connect(ui->pushButtonNo, SIGNAL(clicked()), this, SLOT(on_toolButtonNo_clicked()));
-    connect(sensors_thread, SIGNAL(ReadMe()), this, SLOT(update_servo_current()));
+    connect(sensors_thread, SIGNAL(ReadMe(int)), ui->lcdNumber, SLOT(display(int)));
     
 
     fillServoParameters();
@@ -188,14 +188,9 @@ void RemoteControlWindow::on_toolButtonMov_clicked(){
         sensors_thread->start();
     }
     else{
-        std::cout << "\ttimer on ";
-        
         sensors_thread->quit();
     }
-    
-    
-    
-    //timer->start(100);    
+
 }
 
 void RemoteControlWindow::update_servo_current(){
@@ -240,7 +235,6 @@ void RemoteControlWindow::on_toolButtonYes_clicked(){
         QThread::sleep(1);  
         head.move_v(0); 
         QThread::sleep(1);
-
     }
     
     head.move_v(50); 

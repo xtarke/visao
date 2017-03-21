@@ -53,7 +53,7 @@ private slots:
     void onDataReady();
 
 signals:
-    void ReadMe();
+    void ReadMe(int data);
     
     
 public:

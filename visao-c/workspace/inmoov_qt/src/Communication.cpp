@@ -79,7 +79,7 @@ bool Communication::send_data(QByteArray data)
     
     mutex.unlock();
     
-     qDebug()<< "send_data: "<<QThread::currentThreadId();
+//      qDebug()<< "send_data: "<<QThread::currentThreadId();
     
     return true;
     
@@ -117,7 +117,7 @@ QByteArray Communication::send_rcv_data(QByteArray data){
     
     mutex.unlock();
     
-    qDebug()<< "send_rcv_data: "<<QThread::currentThreadId();
+    // qDebug()<< "send_rcv_data: "<<QThread::currentThreadId();
     
     return requestData;   
 }

@@ -14,7 +14,7 @@ SensorTread::SensorTread(Communication &comm_){
 void SensorTread::run()
 {
     
-    qDebug()<<"From work thread: "<<currentThreadId();
+    // qDebug()<<"From work thread: "<<currentThreadId();
     QTimer timer;
     worker = new SensorWorker(*comm);
     
@@ -31,7 +31,7 @@ void SensorTread::onDataReady()
 {
        sensors_value[0] = worker->get_data(0);
        
-       emit ReadMe();   
+       emit ReadMe((int)sensors_value[0]);   
 }
 
 
@@ -46,20 +46,18 @@ void SensorWorker::onTimeout()
 {
 
     //qDebug()<<"Worker::onTimeout get called from?: "<<QThread::currentThreadId();    
-    mutex.lock();
+    QMutexLocker locker(&mutex);
     sensors_value[0] = read_I();
-    mutex.unlock();
+
     
 }
 
 uint8_t SensorWorker::get_data(int n)
 {    
     uint8_t data;
+    QMutexLocker locker(&mutex);
     
-    mutex.lock();
     data = sensors_value[n];
-    mutex.unlock();
-    
     
     return data;   
 }
