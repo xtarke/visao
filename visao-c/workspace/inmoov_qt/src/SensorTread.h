@@ -18,20 +18,21 @@ class SensorWorker : public QObject
     Q_OBJECT
     
 private:
-    Communication *comm;
     QMutex mutex;    
     uint8_t sensors_value[4];
     
-    uint8_t read_I();
     
 private slots:
-    void onTimeout();
+    void onTimeout();    
+    void PackageReady(QByteArray package);
+    
+signals:
+    void SendData(QByteArray package);
            
 public:    
-    SensorWorker(Communication &comm_);
+    SensorWorker( ) {  };
     
-    uint8_t get_data(int n);
-    
+    uint8_t get_data(int n);    
 };
 
 
@@ -41,8 +42,7 @@ class SensorTread : public QThread
     Q_OBJECT
 
 private:
-    Communication *comm;
-    
+    Communication *comm;    
     SensorWorker *worker;
     
     uint8_t sensors_value[4];    

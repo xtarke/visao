@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>RemoteControlWindow</class>
  <widget class="QDialog" name="RemoteControlWindow">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -14,7 +17,7 @@
    <string>Remote</string>
   </property>
   <property name="modal">
-   <bool>true</bool>
+   <bool>false</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>

@@ -29,16 +29,15 @@ RemoteControlWindow::RemoteControlWindow(QWidget *parent,  Communication *comm_)
         
     sensors_thread = new SensorTread(*comm);
     
-    
 //     connect(ui->toolButtonPort, SIGNAL (clicked()), this, SLOT (on_toolButtonPort_clicked()));
 //     connect(ui->toolButtonOpen, SIGNAL (clicked()), this, SLOT (on_toolButtonOpen_clicked()));
 //     connect(ui->toolButtonIncrease, SIGNAL (clicked()), this, SLOT (on_toolButtonIncrease_clicked()));
 //     connect(ui->toolButtonDecrease, SIGNAL (clicked()), this, SLOT (on_toolButtonDecrease_clicked()));
-//     
+    
     connect(ui->dial, SIGNAL(valueChanged(int)), this, SLOT (on_dialChanged()));
     connect(timer, SIGNAL(timeout()), this, SLOT(update_servo_current()));
-    connect(ui->pushButtonYes, SIGNAL(clicked()), this, SLOT(on_toolButtonYes_clicked()));
-    connect(ui->pushButtonNo, SIGNAL(clicked()), this, SLOT(on_toolButtonNo_clicked()));
+   // connect(ui->pushButtonYes, SIGNAL(clicked()), this, SLOT(on_toolButtonYes_clicked()));
+    //connect(ui->pushButtonNo, SIGNAL(clicked()), this, SLOT(on_toolButtonNo_clicked()));
     connect(sensors_thread, SIGNAL(ReadMe(int)), ui->lcdNumber, SLOT(display(int)));
     
 
@@ -51,6 +50,10 @@ RemoteControlWindow::~RemoteControlWindow()
     if (comm->isReady())
         comm->SerialClose();
 
+    if (sensors_thread->isRunning())
+        sensors_thread->quit();
+    
+    delete sensors_thread;
     delete ui;
     delete settings;
     delete error_message;
@@ -153,11 +156,6 @@ void RemoteControlWindow::fillServoParameters()
     ui->comboBoxServoList->addItem(QStringLiteral("Head V"), 0x02);    
 }
 
-void RemoteControlWindow::on_received_serial_data(){    
-  
-   
-
-}
 
 void RemoteControlWindow::on_dialChanged(){
     
@@ -226,7 +224,7 @@ void RemoteControlWindow::update_servo_current(){
     ui->lcdNumber->display(sensors_thread->get_sensorValue(0));
 }
 
-void RemoteControlWindow::on_toolButtonYes_clicked(){
+void RemoteControlWindow::on_pushButtonYes_clicked(){
     
     Head head(*comm);
      
@@ -241,7 +239,7 @@ void RemoteControlWindow::on_toolButtonYes_clicked(){
    
 }
  
-void RemoteControlWindow::on_toolButtonNo_clicked(){
+void RemoteControlWindow::on_pushButtonNo_clicked(){
     
     Head head(*comm);
      

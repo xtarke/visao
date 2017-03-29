@@ -32,11 +32,10 @@ private slots:
     void on_toolButtonDecrease_clicked();
     void on_toolButtonMov_clicked();
     
-    void on_toolButtonYes_clicked();
-    void on_toolButtonNo_clicked();
+    void on_pushButtonYes_clicked();
+    void on_pushButtonNo_clicked();
     
     void on_dialChanged();    
-    void on_received_serial_data();
     void update_servo_current();
 
 private:

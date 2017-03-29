@@ -38,7 +38,15 @@ void Communication::set_serial(Communication::SerialSettings p)
     serial->setFlowControl(p.flowControl);
 }
 
-
+void Communication::SendData(QByteArray package){
+    
+    QByteArray data = send_rcv_data(package);
+    
+    queue.enqueue(data);
+    
+    if (!queue.isEmpty())
+        emit PackageReady(queue.dequeue());
+}
 
 bool Communication::send_data(QByteArray data)
 {
@@ -128,8 +136,6 @@ QByteArray Communication::make_pgk(QByteArray data)
     QByteArray package;
     uint8_t checksum = 0xff;
     
-    mutex.lock(); 
-    
     package += 0x7e;                                     //Inicializador - ST
     package += data.size();                               //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
     
@@ -139,8 +145,6 @@ QByteArray Communication::make_pgk(QByteArray data)
     }
     
     package += checksum;     //Checksum
-    
-    mutex.unlock(); 
-    
+       
     return package;    
 }
