@@ -33,6 +33,8 @@ private slots:
     void on_pushButtonTestDisparity_clicked();
     void on_pushButtonLoadCalib_clicked();
     
+    void on_pushButtonHeadTracking_clicked();
+    
     
     // Serial Port Slots
     void on_pushButtonRemote_clicked();

@@ -15,6 +15,8 @@
 
 #include "HeadTracking.h"
 
+#include "robot/Head.h"
+
 
 inmoov_qt::inmoov_qt(QWidget *parent) :
     QMainWindow(parent),
@@ -53,9 +55,6 @@ inmoov_qt::inmoov_qt(QWidget *parent) :
     connect(ui->spinBoxUniqueness, SIGNAL(valueChanged(int)), ui->hSliderUniqueness, SLOT(setValue(int)));
     connect(ui->hSliderUniqueness, SIGNAL(valueChanged(int)), ui->spinBoxUniqueness, SLOT(setValue(int)));
     connect(ui->spinBoxUniqueness, SIGNAL(valueChanged(int)), this, SLOT(configUniquenessRatio(int)));
-    
-    //connect(ui->actionConfig_Serial, SIGNAL(triggered()), this, SLOT(on_actionConfig_Serial_triggered()));
-    
 }
 
 inmoov_qt::~inmoov_qt()
@@ -253,15 +252,60 @@ void inmoov_qt::on_pushButtonFaceDetect_clicked()
     ui->pushButtonTestDisparity->setDisabled(true);
     
     FaceDetection faces(*cameras);
+    FaceDetection::FacePosition pos = {0.5, 0.5};
+    
+    Head head(*comm);
+    
+    float        uk   = 0;
+    static float uk_1 = 0;
+    float        ek   = 0;
+    static float ek_1 = 0;
+    float q1 = 0;
+
+    /* pi constants */
+    const float KC = 0.5;
+    const float Ta = 0.100;
+    const float Ti = 0.1;
+    
+    q1 = -KC*(1 - Ta/Ti);
     
     while(1){
         cameras->capture();
 
         frame_1 = cameras->get_left_Frame();       
-        frame_1 = faces.detect(frame_1);
+        frame_1 = faces.detect(frame_1, &pos);
         
-        imshow("frame", frame_1);      
-            
+        imshow("frame", frame_1); 
+        
+        
+        /* PI u(k) = u(k - 1) + q0.e(k) + q1.e(k-1)
+        * q0 = Kc
+        * q1 = -KC ( 1 - Ta / Ti )
+        * Ta = sample time
+        * Ti = integral time         */
+        ek_1 = ek;
+        ek   = 0 - pos.x*100 + 50;
+
+        uk_1 = uk;
+        uk   = uk_1 + KC*ek + q1*ek_1;
+
+        /* saturation control */
+        if (uk < -50)
+            uk = -50;
+        /* saturation control */
+        if (uk > 50)
+            uk = 50;
+        
+        //float f = 3.4;
+        //int n = 
+        
+        
+        uint8_t data = static_cast<uint8_t>(uk+50);
+        
+        
+        std::cout << "UK(x)= " << uk  << "   byte: " << (unsigned)data << "  x: " << pos.x*100 << std::endl;
+        
+          
         //wait for a key for 30ms: should be called render images on imshow();
         key = (char) waitKey(30);
 
@@ -269,7 +313,7 @@ void inmoov_qt::on_pushButtonFaceDetect_clicked()
 
     }
     
-    destroyAllWindows();
+    destroyAllWindows();    
     
     ui->pushButtonCaptureTest->setDisabled(false);
     ui->pushButtonRelesCams->setDisabled(false);
@@ -317,13 +361,31 @@ void inmoov_qt::on_actionConfig_Serial_triggered(){
 }
 
 
-void inmoov_qt::on_pushButtonRemote_clicked(){
-     
+void inmoov_qt::on_pushButtonRemote_clicked(){    
     
     remotecontrol->show();
      
 }
 
+void inmoov_qt::on_pushButtonHeadTracking_clicked()
+{
+    String left_id = ui->lineEditLeftCam->text().toUtf8().constData();
+    String rigt_id = ui->lineEditRightCam->text().toUtf8().constData();
+    
+    
+    if (ui->pushButtonHeadTracking->isChecked()){
+       
+        headtrackingThread->run(std::stoi(left_id), std::stoi(rigt_id));
+    }
+    else{
+        headtrackingThread->quit();
+    }
+
+    
+//    headtrackingThread->
+    
+    
+}
 
 
 

@@ -25,12 +25,15 @@
 #include <QThread>
 #include <QWaitCondition>
 
+class StereoCapture;
+class StereoVision;
+
 class HeadTracking : public QThread
 {
     Q_OBJECT
     
 protected:
-    void run();
+    
     
 private slots:
     void onTimeout(); 
@@ -40,14 +43,21 @@ public:
     HeadTracking();
     ~HeadTracking();
     
+    void run(int leftCamIndex_, int rightCamIndex_);
     void stop();
+    
+    
     
 private:
     volatile bool stopped;
-     QMutex mutex;
+    QMutex mutex;
     
+    StereoCapture *cameras; 
+    StereoVision *vision; 
     
-    
+    int leftCamIndex;
+    int rightCamIndex;
+        
 };
 
 #endif // HEADTRACKING_H

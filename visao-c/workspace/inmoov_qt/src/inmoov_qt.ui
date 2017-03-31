@@ -370,6 +370,9 @@
             <property name="text">
              <string>HeadTracking</string>
             </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
          </layout>

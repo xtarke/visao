@@ -28,16 +28,9 @@ RemoteControlWindow::RemoteControlWindow(QWidget *parent,  Communication *comm_)
     timer = new QTimer(this);
         
     sensors_thread = new SensorTread(*comm);
-    
-//     connect(ui->toolButtonPort, SIGNAL (clicked()), this, SLOT (on_toolButtonPort_clicked()));
-//     connect(ui->toolButtonOpen, SIGNAL (clicked()), this, SLOT (on_toolButtonOpen_clicked()));
-//     connect(ui->toolButtonIncrease, SIGNAL (clicked()), this, SLOT (on_toolButtonIncrease_clicked()));
-//     connect(ui->toolButtonDecrease, SIGNAL (clicked()), this, SLOT (on_toolButtonDecrease_clicked()));
-    
+        
     connect(ui->dial, SIGNAL(valueChanged(int)), this, SLOT (on_dialChanged()));
     connect(timer, SIGNAL(timeout()), this, SLOT(update_servo_current()));
-   // connect(ui->pushButtonYes, SIGNAL(clicked()), this, SLOT(on_toolButtonYes_clicked()));
-    //connect(ui->pushButtonNo, SIGNAL(clicked()), this, SLOT(on_toolButtonNo_clicked()));
     connect(sensors_thread, SIGNAL(ReadMe(int)), ui->lcdNumber, SLOT(display(int)));
     
 
