@@ -252,22 +252,34 @@ void inmoov_qt::on_pushButtonFaceDetect_clicked()
     ui->pushButtonTestDisparity->setDisabled(true);
     
     FaceDetection faces(*cameras);
-    FaceDetection::FacePosition pos = {0.5, 0.5};
+    FaceDetection::FacePosition pos = {0.5, 0.5, false};
     
     Head head(*comm);
     
-    float        uk   = 0;
-    static float uk_1 = 0;
-    float        ek   = 0;
-    static float ek_1 = 0;
+    float        uk_x   = 0;
+    static float uk_1_x = 0;
+    float        ek_x   = 0;
+    static float ek_1_x = 0;
+    
+    float        uk_y   = 0;
+    static float uk_1_y = 0;
+    float        ek_y   = 0;
+    static float ek_1_y = 0;    
     float q1 = 0;
 
     /* pi constants */
-    const float KC = 0.5;
+    const float KC = 0.05;
     const float Ta = 0.100;
     const float Ti = 0.1;
     
     q1 = -KC*(1 - Ta/Ti);
+    
+    uint8_t data_x;
+    uint8_t data_y;
+    
+    head.move_h(50);
+    head.move_v(50);   
+    
     
     while(1){
         cameras->capture();
@@ -277,37 +289,58 @@ void inmoov_qt::on_pushButtonFaceDetect_clicked()
         
         imshow("frame", frame_1); 
         
-        
-        /* PI u(k) = u(k - 1) + q0.e(k) + q1.e(k-1)
-        * q0 = Kc
-        * q1 = -KC ( 1 - Ta / Ti )
-        * Ta = sample time
-        * Ti = integral time         */
-        ek_1 = ek;
-        ek   = 0 - pos.x*100 + 50;
+        if (pos.detected == true) {
+              
+            /* PI u(k) = u(k - 1) + q0.e(k) + q1.e(k-1)
+            * q0 = Kc
+            * q1 = -KC ( 1 - Ta / Ti )
+            * Ta = sample time
+            * Ti = integral time         */
+            ek_1_x = ek_x;
+            ek_x   = (0 - pos.x*100 + 50);
 
-        uk_1 = uk;
-        uk   = uk_1 + KC*ek + q1*ek_1;
+            uk_1_x = uk_x;
+            uk_x   = uk_1_x + KC*ek_x + q1*ek_1_x;
 
-        /* saturation control */
-        if (uk < -50)
-            uk = -50;
-        /* saturation control */
-        if (uk > 50)
-            uk = 50;
+            /* saturation control */
+            if (uk_x < -50)
+                uk_x = -50;
+            /* saturation control */
+            if (uk_x > 50)
+                uk_x = 50;
+            
+            /* for y axis */
+            ek_1_y = ek_y;
+            ek_y   = (0 - pos.y*100 + 50);
+
+            uk_1_y = uk_y;
+            uk_y   = uk_1_y + KC*ek_y + q1*ek_1_y;
+
+            /* saturation control */
+            if (uk_y < -50)
+                uk_y = -50;
+            /* saturation control */
+            if (uk_y > 50)
+                uk_y = 50;
         
-        //float f = 3.4;
-        //int n = 
-        
-        
-        uint8_t data = static_cast<uint8_t>(uk+50);
-        
-        
-        std::cout << "UK(x)= " << uk  << "   byte: " << (unsigned)data << "  x: " << pos.x*100 << std::endl;
-        
+           
+            data_x = static_cast<uint8_t>(uk_x+50);
+            data_y = static_cast<uint8_t>(uk_y+50);
           
+            
+            std::cout << "UK(x)= " << uk_x  << "   byte: " << (unsigned)data_x << "  x: " << pos.x*100 << " erro:  " << ek_x <<  std::endl;
+            
+            head.move_h(data_x);
+            head.move_v(data_y);
+            
+        }
+        else{
+           head.move_h(data_x);
+           head.move_v(data_y);           
+        }
+              
         //wait for a key for 30ms: should be called render images on imshow();
-        key = (char) waitKey(30);
+        key = (char) waitKey(60);
 
         if (key == 'q' || key == 'Q') break;
 

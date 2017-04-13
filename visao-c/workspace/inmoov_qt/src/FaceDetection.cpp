@@ -47,6 +47,7 @@ Mat FaceDetection::detectAndDisplay(Mat frame, FacePosition *pos)
     //-- Detect faces
     face_cascade.detectMultiScale( frame_gray, faces, 1.1, 5, 0, Size(50, 50) );
 
+    pos->detected = false;
     
     if (faces.size() > 0)
     //for( size_t i = 0; i < faces.size(); i++ )
@@ -63,7 +64,10 @@ Mat FaceDetection::detectAndDisplay(Mat frame, FacePosition *pos)
             ellipse( frame, center, Size( faces[0].width/2, faces[0].height/2 ), 0, 0, 360, Scalar( 255, 0, 0 ), 2, 8, 0 );
             
             pos->x =  ((faces[0].x + faces[0].width/2) / (float)cameras->getFrameWidth());
-            pos->y = ((faces[0].y + faces[0].height/2) / (float)cameras->getFrameHeight());    
+            pos->y = ((faces[0].y + faces[0].height/2) / (float)cameras->getFrameHeight());  
+            
+            pos->detected = true;
+            
         //}
     }
     

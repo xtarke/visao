@@ -33,8 +33,8 @@ private:
     /* Command id: 1 -> Set servo position (0 to 100% where 50% is center ) */
     const uint8_t PKG_CMD_ID = 1;
     /* Servo addresses */
-    const uint8_t PKG_SERVO_ADDR_H = 0x00;
-    const uint8_t PKG_SERVO_ADDR_V = 0x01;
+    const uint8_t PKG_SERVO_ADDR_H = 0x01;
+    const uint8_t PKG_SERVO_ADDR_V = 0x00;
     
     Communication *comm;
     

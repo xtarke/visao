@@ -11,6 +11,7 @@ public:
     struct FacePosition{
         float x;
         float y;       
+        bool detected;
     };    
     
     FaceDetection(StereoCapture &capture);    
