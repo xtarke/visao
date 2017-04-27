@@ -20,7 +20,7 @@
 // --------------------------------------------------------------------------------
 //  System definitions ------------------------------------------------------------
 
-#define F_CPU 16000000UL
+#define F_CPU 20000000UL
 
 
 // --------------------------------------------------------------------------------
@@ -29,6 +29,8 @@
 #include "globalDefines.h"
 #include "ATmega328.h"
 #include "ctrl_Inmoov_Braco.h"
+
+#include <string.h>
 
 // --------------------------------------------------------------------------------
 //  Project definitions -----------------------------------------------------------
@@ -95,19 +97,28 @@ int main(void)
 
 	// Global variables initialization
 	flagsPWM = 0;			// Inicializa a maquina de estados do PWM no PWM_0
-	setBit(flagsPWM, 0);
+	//setBit(flagsPWM, 0);
 	setBit(flagsPWM, ACT_PWM0);	// Inicia todos PWM como ativos
 	setBit(flagsPWM, ACT_PWM1);
 	setBit(flagsPWM, ACT_PWM2);
 	setBit(flagsPWM, ACT_PWM3);
 
 	// Inicialização valores dos servos
+//	minCount[0] = 1300;
+	minCount[0] = 900;
+	maxCount[0] = 2100;
+	minCount[1] = 1100;
+	maxCount[1] = 2100;
+	minCount[2] = 900;
+	maxCount[2] = 2100;
+	minCount[3] = 900;
+	maxCount[3] = 2100;
 	for(i=0; i<4;i++){
-		minCount[i] = 900;		// 900 e 2100 são valores em microSegundos
-		maxCount[i] = 2100;		// São os limites -60 graus e +60 graus
+//		minCount[i] = 900;		// 900 e 2100 são valores em microSegundos
+//		maxCount[i] = 2100;		// São os limites -60 graus e +60 graus
 		percent[i] = 50;		// De inclinação dos servos utilizados
 		aux16 = update_reg_value(minCount[i],maxCount[i],percent[i]);
-		pwmRegValue[i] = aux16+PWM_INIT_VALUE+PWM_PASSO*i;
+		pwmRegValue[i] = aux16+PWM_INIT_VALUE+(PWM_PASSO*i);
 	}
 
 	// Receive
@@ -284,43 +295,44 @@ ISR(ADC_vect)
 
 ISR(TIMER1_COMPB_vect)
 {
+//printf("\n\r %d - %d - %d", isBitSet(flagsPWM, 1), isBitSet(flagsPWM, 0), isBitSet(flagsPWM, 0)&isBitClr(flagsPWM, 1));
 	if(isBitClr(flagsPWM, 0)&isBitClr(flagsPWM, 1)){		// 00 - PWM0
 		if(isBitClr(PWM0_PIN, PWM0_BIT) & isBitSet(flagsPWM, ACT_PWM0)){
 			setBit(PWM0_PORT, PWM0_BIT);
-			timer1SetCompareBValue(pwmRegValue[PWM_0]);
+			timer1SetCompareBValue(pwmRegValue[PWM_0]);		// 2500+time
 		}else{
 			clrBit(PWM0_PORT, PWM0_BIT);
 			setBit(flagsPWM, 0);	// Muda para PWM1
-			timer1SetCompareBValue(PWM_PASSO+PWM_INIT_VALUE);
+			timer1SetCompareBValue(PWM_PASSO+PWM_INIT_VALUE);	// 15000
 		}
 	}
 	else if(isBitSet(flagsPWM, 0)&isBitClr(flagsPWM, 1) & isBitSet(flagsPWM, ACT_PWM1)){	// 01 - PWM1
 		if(isBitClr(PWM1_PIN, PWM1_BIT)){
 			setBit(PWM1_PORT, PWM1_BIT);
-			timer1SetCompareBValue(pwmRegValue[PWM_1]);
+			timer1SetCompareBValue(pwmRegValue[PWM_1]);		//
 		}else{
 			clrBit(PWM1_PORT, PWM1_BIT);
 			setBit(flagsPWM, 1);	// 10 - PWM2
 			clrBit(flagsPWM, 0);
-			timer1SetCompareBValue(2*PWM_PASSO+PWM_INIT_VALUE);
+			timer1SetCompareBValue(2*PWM_PASSO+PWM_INIT_VALUE);	// 27500
 		}
 	}
-	else if(isBitSet(flagsPWM, 0)&isBitClr(flagsPWM, 1) & isBitSet(flagsPWM, ACT_PWM2)){	// 10 - PWM2
+	else if(isBitSet(flagsPWM, 1)&isBitClr(flagsPWM, 0) & isBitSet(flagsPWM, ACT_PWM2)){	// 10 - PWM2
 		if(isBitClr(PWM2_PIN, PWM2_BIT)){
 			setBit(PWM2_PORT, PWM2_BIT);
-			timer1SetCompareBValue(pwmRegValue[PWM_2]);
+			timer1SetCompareBValue(pwmRegValue[PWM_2]);	// 27500 + time
 		}else{
 			clrBit(PWM2_PORT, PWM2_BIT);
 			setBit(flagsPWM, 0);	// 11 - PWM3
 			timer1SetCompareBValue(3*PWM_PASSO+PWM_INIT_VALUE);
 		}
 	}
-	else if(isBitSet(flagsPWM, 0)&isBitClr(flagsPWM, 1) & isBitSet(flagsPWM, ACT_PWM3)){	// 11 - PWM3
-		if(isBitClr(PWM2_PIN, PWM2_BIT)){
-			setBit(PWM2_PORT, PWM2_BIT);
-			timer1SetCompareBValue(pwmRegValue[PWM_2]);
+	else if(isBitSet(flagsPWM, 0)&isBitSet(flagsPWM, 1) & isBitSet(flagsPWM, ACT_PWM3)){	// 11 - PWM3
+		if(isBitClr(PWM3_PIN, PWM3_BIT)){
+			setBit(PWM3_PORT, PWM3_BIT);
+			timer1SetCompareBValue(pwmRegValue[PWM_3]);
 		}else{
-			clrBit(PWM2_PORT, PWM2_BIT);
+			clrBit(PWM3_PORT, PWM3_BIT);
 			clrBit(flagsPWM, 0);	// 00 - PWM0
 			clrBit(flagsPWM, 1);
 			timer1SetCompareBValue(PWM_INIT_VALUE);
