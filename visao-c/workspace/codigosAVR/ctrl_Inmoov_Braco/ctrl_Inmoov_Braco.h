@@ -16,8 +16,8 @@
 	#define PWM_PRODUTO(VALUE)	((VALUE<<1)+(VALUE>>1))	// Multiplica por 2,5
 #else
 	#if F_CPU == 16000000
-		#define PWM_TOP_VALUE  40000 // Top value to 20MHz
-		#define PWM_PASSO 	   20000 // Passo entre cada PWM
+		#define PWM_TOP_VALUE  40000 // Top value to 16MHz
+		#define PWM_PASSO 	   10000 // Passo entre cada PWM
 		#define PWM_INIT_VALUE 2000
 		#define PWM_PRODUTO(VALUE)	(VALUE<<1)	// Multiplica por 2,0
 	#else
