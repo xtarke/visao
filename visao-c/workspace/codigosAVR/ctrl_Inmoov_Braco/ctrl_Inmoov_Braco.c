@@ -56,8 +56,8 @@ volatile uint8 flagsPWM;	// 2 LSBs - Maquina de estado ctrl PWM
 							// bits 2, 3, 4 e 5 marcam se estão ativos
 							// respectivamente PWM0, PWM1, PWM2, PWM3 - sendo 1 ativo
 
-uint16 pwmRegValue[4];
-uint8 receiveWd;
+volatile uint16 pwmRegValue[4];
+volatile uint8 receiveWd;
 
 volatile uint16 adcCurrent;
 volatile flagsADC_t ctrlADC;	// 3 LSB - Ctrl contagem - conta até 14
@@ -103,6 +103,11 @@ int main(void)
 	setBit(flagsPWM, ACT_PWM2);
 	setBit(flagsPWM, ACT_PWM3);
 
+	// Led azul teste funcionamento
+	setBit(DDRB,PB0);
+	// Pinos auxiliares P9
+//	setBit(DDRD, PD2);
+
 	// Inicialização valores dos servos
 //	minCount[0] = 1300;
 	minCount[0] = 900;
@@ -118,8 +123,13 @@ int main(void)
 //		maxCount[i] = 2100;		// São os limites -60 graus e +60 graus
 		percent[i] = 50;		// De inclinação dos servos utilizados
 		aux16 = update_reg_value(minCount[i],maxCount[i],percent[i]);
-		pwmRegValue[i] = aux16+PWM_INIT_VALUE+(PWM_PASSO*i);
+	//	pwmRegValue[i] = aux16+PWM_INIT_VALUE+(PWM_PASSO*i);
 	}
+	// 3750 + 2500 + 12500*i
+	pwmRegValue[0] = 6250;
+	pwmRegValue[1] = 18750;
+	pwmRegValue[2] = 31250;
+	pwmRegValue[3] = 43750;
 
 	// Receive
 	receiveWd = 0;
@@ -129,6 +139,7 @@ int main(void)
 
 	// PWM initialization
 	setBit(PWM0_DDR, PWM0_BIT);		// Seta pinos do pwm como saída
+//clrBit(PWM0_PORT, PB0);
 	setBit(PWM1_DDR, PWM1_BIT);
 	setBit(PWM2_DDR, PWM2_BIT);
 	setBit(PWM3_DDR, PWM3_BIT);
@@ -203,7 +214,7 @@ int main(void)
 					while(i<packageSize){
 						usartTransmit(packageData[i++]);
 					}
-printf("-- PWM = %d pct = %d -- \n", packageData[1], percent[packageData[1]]);
+//printf("-- PWM = %d pct = %d -- \n", packageData[1], percent[packageData[1]]);
 
 					// necessário ajustar para generico
 					//				if(pwmRegValue[packageData[1]]<(minCount[packageData[1]]+2500)) pwmRegValue[packageData[1]]=minCount[packageData[1]];
@@ -218,7 +229,9 @@ printf("-- PWM = %d pct = %d -- \n", packageData[1], percent[packageData[1]]);
 					packageAux[2] = (uint8) (meanBuffer[packageData[1]]);
 					packageSize = buildTransmitPackageData(packageData, packageAux, 3);
 					i=0;
+					//packageSize = 4;
 					while(i<packageSize){
+//						cplBit(PORTD, PD2);
 						usartTransmit(packageData[i++]);
 					}
 					break;
@@ -296,6 +309,14 @@ ISR(ADC_vect)
 ISR(TIMER1_COMPB_vect)
 {
 //printf("\n\r %d - %d - %d", isBitSet(flagsPWM, 1), isBitSet(flagsPWM, 0), isBitSet(flagsPWM, 0)&isBitClr(flagsPWM, 1));
+	//setBit(PORTB, PB0);
+//	uint8_t sreg = SREG;
+
+//	timer1DeactivateCompareBInterrupt();
+//	sei();
+
+
+
 	if(isBitClr(flagsPWM, 0)&isBitClr(flagsPWM, 1)){		// 00 - PWM0
 		if(isBitClr(PWM0_PIN, PWM0_BIT) & isBitSet(flagsPWM, ACT_PWM0)){
 			setBit(PWM0_PORT, PWM0_BIT);
@@ -303,7 +324,7 @@ ISR(TIMER1_COMPB_vect)
 		}else{
 			clrBit(PWM0_PORT, PWM0_BIT);
 			setBit(flagsPWM, 0);	// Muda para PWM1
-			timer1SetCompareBValue(PWM_PASSO+PWM_INIT_VALUE);	// 15000
+			timer1SetCompareBValue(15000);	// 15000
 		}
 	}
 	else if(isBitSet(flagsPWM, 0)&isBitClr(flagsPWM, 1) & isBitSet(flagsPWM, ACT_PWM1)){	// 01 - PWM1
@@ -314,7 +335,7 @@ ISR(TIMER1_COMPB_vect)
 			clrBit(PWM1_PORT, PWM1_BIT);
 			setBit(flagsPWM, 1);	// 10 - PWM2
 			clrBit(flagsPWM, 0);
-			timer1SetCompareBValue(2*PWM_PASSO+PWM_INIT_VALUE);	// 27500
+			timer1SetCompareBValue(27500);	// 27500
 		}
 	}
 	else if(isBitSet(flagsPWM, 1)&isBitClr(flagsPWM, 0) & isBitSet(flagsPWM, ACT_PWM2)){	// 10 - PWM2
@@ -324,7 +345,7 @@ ISR(TIMER1_COMPB_vect)
 		}else{
 			clrBit(PWM2_PORT, PWM2_BIT);
 			setBit(flagsPWM, 0);	// 11 - PWM3
-			timer1SetCompareBValue(3*PWM_PASSO+PWM_INIT_VALUE);
+			timer1SetCompareBValue(40000);
 		}
 	}
 	else if(isBitSet(flagsPWM, 0)&isBitSet(flagsPWM, 1) & isBitSet(flagsPWM, ACT_PWM3)){	// 11 - PWM3
@@ -335,9 +356,16 @@ ISR(TIMER1_COMPB_vect)
 			clrBit(PWM3_PORT, PWM3_BIT);
 			clrBit(flagsPWM, 0);	// 00 - PWM0
 			clrBit(flagsPWM, 1);
-			timer1SetCompareBValue(PWM_INIT_VALUE);
+			timer1SetCompareBValue(2500);
 		}
 	}
+//	clrBit(PORTB, PB0);
+
+
+
+//	timer1ActivateCompareBInterrupt();
+//	SREG = sreg;
+
 }
 
 ISR(TIMER2_OVF_vect)

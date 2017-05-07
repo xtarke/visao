@@ -291,7 +291,7 @@ resultValue_t	adcWaitUntilConversionFinish(void);
 // -----------------------------------------------------------------------------
 // USART0 ----------------------------------------------------------------------
 
-#define USART_RECEIVER_BUFFER_FUNCTION_HANDLER			ISR(USART_RX_vect){usartAddDataToReceiverBuffer(usartReceive());return;}
+#define USART_RECEIVER_BUFFER_FUNCTION_HANDLER ISR(USART_RX_vect){usartAddDataToReceiverBuffer(usartReceive());return;}
 
 resultValue_t	usartConfig(usartMode_t mode, usartBaudRate_t baudRate, usartDataBits_t dataBits, usartParity_t parity, usartStopBits_t stopBits);
 resultValue_t	usartEnableReceiver(void);

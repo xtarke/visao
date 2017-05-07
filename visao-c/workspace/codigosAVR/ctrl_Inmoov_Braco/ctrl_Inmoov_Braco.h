@@ -45,15 +45,15 @@
 // Servo2 - PD6
 // Servo3 - PD5
 
-#define PWM0_DDR	DDRD
-#define PWM0_PORT	PORTD
-#define PWM0_PIN	PIND
-#define PWM0_BIT	PD7
+#define PWM1_DDR	DDRD
+#define PWM1_PORT	PORTD
+#define PWM1_PIN	PIND
+#define PWM1_BIT	PD7
 
-#define PWM1_DDR	DDRB
-#define PWM1_PORT	PORTB
-#define PWM1_PIN	PINB
-#define PWM1_BIT	PB0
+#define PWM0_DDR	DDRB
+#define PWM0_PORT	PORTB
+#define PWM0_PIN	PINB
+#define PWM0_BIT	PB0
 
 #define PWM2_DDR	DDRD
 #define PWM2_PORT	PORTD
@@ -101,22 +101,22 @@ void receivePackageData(uint8 *index, uint8 *data, uint8 *size, uint8 *ready)
 
 	while(!usartIsReceiverBufferEmpty()){
 		aux8 = usartGetDataFromReceiverBuffer();
-timer2Config(TIMER_A_MODE_NO_CHANGE, TIMER_B_PRESCALER_1024);
+//timer2Config(TIMER_A_MODE_NO_CHANGE, TIMER_B_PRESCALER_1024);
 		switch(*index){
 			case 0:		// Start delimiter
 				if(aux8 == 0x7E){
 					(*index)++;
-timer2SetCounterValue(0);
-setBit(PORTB, PB0);
+//timer2SetCounterValue(0);
+//setBit(PORTB, PB0);
 				}
 				break;
 			case 1:		// Size
-timer2SetCounterValue(0);
+//timer2SetCounterValue(0);
 				*size = aux8;
 				(*index)++;
 				break;
 			default:
-timer2SetCounterValue(0);
+//timer2SetCounterValue(0);
 				if(*index < ((*size) + 2)){
 					data[(*index) - 2] = aux8;
 					(*index)++;
@@ -126,9 +126,9 @@ timer2SetCounterValue(0);
 					}
 					if(aux8 != 0xFF){
 //printf("-- Erro no CheckSum --\n");
-usartTransmit(0x0F);
-usartTransmit(0x0F);
-usartTransmit(0x0F);
+//usartTransmit(0x0F);
+//usartTransmit(0x0F);
+//usartTransmit(0x0F);
 						*ready = 0;
 						*index = 0;
 						*size = 0;
@@ -136,8 +136,8 @@ usartTransmit(0x0F);
 					else{
 						*ready = 1;
 						*index = 0;
-timer2Config(TIMER_A_MODE_NO_CHANGE, TIMER_B_CLOCK_DISABLE);
-timer2SetCounterValue(0);
+//timer2Config(TIMER_A_MODE_NO_CHANGE, TIMER_B_CLOCK_DISABLE);
+//timer2SetCounterValue(0);
 					}
 				}
 				break;
