@@ -146,12 +146,17 @@ void RemoteControlWindow::on_toolButtonDecrease_clicked(){
 void RemoteControlWindow::fillServoParameters()
 {
     ui->comboBoxServoList->addItem(QStringLiteral("Head H"), 0x01);
-    ui->comboBoxServoList->addItem(QStringLiteral("Head V"), 0x02);    
+    ui->comboBoxServoList->addItem(QStringLiteral("Head V"), 0x02);
+    ui->comboBoxServoList->addItem(QStringLiteral("Servo 3"), 0x03);
+    ui->comboBoxServoList->addItem(QStringLiteral("Servo 4"), 0x04);
+    
 }
 
 
 void RemoteControlWindow::on_dialChanged(){
     
+    QByteArray data;
+    QByteArray package;
     Head head(*comm);
         
     int currentIndex = ui->comboBoxServoList->currentIndex();    
@@ -164,18 +169,47 @@ void RemoteControlWindow::on_dialChanged(){
     
     ServoPos[ServoId] = (uint8_t)ui->dial->value();
     
+    
+    switch (ServoId){        
+        case 0:
+            head.move_v(ServoPos[ServoId]);
+            break;
+            
+        case 1:
+            head.move_v(ServoPos[ServoId]);
+            break;
+            
+        case 2:
+        case 3:            
+            /* Package head data */
+            data += 0x01;
+            data += (uint8_t)ServoId;
+            data += ServoPos[ServoId];
+            
+            /* Package construction */
+            package = comm->make_pgk(data);
+            
+            /* Send data */
+            comm->send_data(package);      
+            
+            break;
+        
+        default:
+            break;
+    }
+    
+/*
     if (ServoId == 1)    
         head.move_h(ServoPos[ServoId]);
-    else
-        head.move_v(ServoPos[ServoId]);
+    else if (
+        head.move_v(ServoPos[ServoId]);*/
         
 }
 
 void RemoteControlWindow::on_toolButtonMov_clicked(){
     
     
-    if (ui->toolButtonMov->isChecked()){
-       
+    if (ui->toolButtonMov->isChecked()){       
         sensors_thread->start();
     }
     else{

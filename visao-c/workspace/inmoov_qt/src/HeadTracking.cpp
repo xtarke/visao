@@ -62,9 +62,6 @@ void HeadTracking::run(int leftCamIndex_, int rightCamIndex_)
 void HeadTracking::stop()
 {
     stopped = true;
-    
-    
-    
 }
 
 void HeadTracking::onTimeout()
@@ -90,8 +87,7 @@ void HeadTracking::onTimeout()
     /* Send data via signal to comm atached to main thread*/
     //emit SendData(package);
     
-    
-   cv::Mat frame_1;
+    cv::Mat frame_1;
     cv::Mat frame_2;
     cv::Mat frame_3;    
     char key;
