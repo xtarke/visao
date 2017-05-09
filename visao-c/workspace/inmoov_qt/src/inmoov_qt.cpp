@@ -252,7 +252,7 @@ void inmoov_qt::on_pushButtonFaceDetect_clicked()
     ui->pushButtonTestDisparity->setDisabled(true);
     
     FaceDetection faces(*cameras);
-    FaceDetection::FacePosition pos = {0.5, 0.5, false};
+    FaceDetection::FacePosition pos = {0, 0, false};
     
     Head head(*comm);
     
@@ -268,7 +268,7 @@ void inmoov_qt::on_pushButtonFaceDetect_clicked()
     float q1 = 0;
 
     /* pi constants */
-    const float KC = 0.05;
+    const float KC = 0.1;
     const float Ta = 0.100;
     const float Ti = 0.1;
     
@@ -323,16 +323,13 @@ void inmoov_qt::on_pushButtonFaceDetect_clicked()
             if (uk_y > 50)
                 uk_y = 50;
         
-           
             data_x = static_cast<uint8_t>(uk_x+50);
             data_y = static_cast<uint8_t>(uk_y+50);
           
-            
             std::cout << "UK(x)= " << uk_x  << "   byte: " << (unsigned)data_x << "  x: " << pos.x*100 << " erro:  " << ek_x <<  std::endl;
             
             head.move_h(data_x);
-            head.move_v(data_y);
-            
+            head.move_v(data_y);            
         }
         else{
            head.move_h(data_x);
