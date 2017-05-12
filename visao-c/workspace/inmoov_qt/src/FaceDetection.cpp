@@ -15,6 +15,18 @@ FaceDetection::FaceDetection(StereoCapture &capture){
     };
 }
 
+FaceDetection::FaceDetection(){
+    //-- 1. Load the cascade
+    if( !face_cascade.load("lbpcascade_frontalface.xml") ){ 
+        std::cerr << "--(!)Error loading face cascade: lbpcascade_frontalface.xml\n";
+    }
+    
+    if( !eyes_cascade.load("haarcascade_eye_tree_eyeglasses.xml") ){ 
+        std::cerr << "--(!)Error loading face cascade: lbpcascade_frontalface.xml\n";        
+    };
+}
+
+
 Mat FaceDetection::detect(Mat frame, FacePosition *pos) {
     
     if (face_cascade.empty())  {

@@ -14,7 +14,9 @@ public:
         bool detected;
     };    
     
-    FaceDetection(StereoCapture &capture);    
+    FaceDetection(StereoCapture &stereoCapture);
+    FaceDetection();    
+    
     Mat detect(Mat frame, FacePosition *pos);
     
 private:

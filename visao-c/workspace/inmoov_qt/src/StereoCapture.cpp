@@ -17,7 +17,7 @@ StereoCapture::StereoCapture (int _leftCamIndex, int _rightCamIndex, int _frame_
 //     left_Cam.set(CV_CAP_PROP_FRAME_HEIGHT,_frame_height);
 //     rigth_Cam.set(CV_CAP_PROP_FRAME_WIDTH,_frame_width);
 //     rigth_Cam.set(CV_CAP_PROP_FRAME_HEIGHT,_frame_height);    
-//     
+     
     frame_height = _frame_height;
     frame_width = _frame_width;   
     
