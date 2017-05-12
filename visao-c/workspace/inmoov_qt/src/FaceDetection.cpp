@@ -13,9 +13,14 @@ FaceDetection::FaceDetection(StereoCapture &capture){
     if( !eyes_cascade.load("haarcascade_eye_tree_eyeglasses.xml") ){ 
         std::cerr << "--(!)Error loading face cascade: lbpcascade_frontalface.xml\n";        
     };
+    
+    
+    frame_width = cameras->getFrameWidth();
+    frame_height = cameras->getFrameHeight();
+    
 }
 
-FaceDetection::FaceDetection(){
+FaceDetection::FaceDetection(int _frame_width, int _frame_height){
     //-- 1. Load the cascade
     if( !face_cascade.load("lbpcascade_frontalface.xml") ){ 
         std::cerr << "--(!)Error loading face cascade: lbpcascade_frontalface.xml\n";
@@ -24,6 +29,9 @@ FaceDetection::FaceDetection(){
     if( !eyes_cascade.load("haarcascade_eye_tree_eyeglasses.xml") ){ 
         std::cerr << "--(!)Error loading face cascade: lbpcascade_frontalface.xml\n";        
     };
+    
+    frame_width = _frame_width;
+    frame_height = _frame_height;
 }
 
 
@@ -75,8 +83,8 @@ Mat FaceDetection::detectAndDisplay(Mat frame, FacePosition *pos)
             Point center( faces[0].x + faces[0].width/2, faces[0].y + faces[0].height/2 );
             ellipse( frame, center, Size( faces[0].width/2, faces[0].height/2 ), 0, 0, 360, Scalar( 255, 0, 0 ), 2, 8, 0 );
             
-            pos->x =  ((faces[0].x + faces[0].width/2) / (float)cameras->getFrameWidth());
-            pos->y = ((faces[0].y + faces[0].height/2) / (float)cameras->getFrameHeight());  
+            pos->x =  ((faces[0].x + faces[0].width/2) / (float)frame_width);
+            pos->y = ((faces[0].y + faces[0].height/2) / (float)frame_height);  
             
             pos->detected = true;
             

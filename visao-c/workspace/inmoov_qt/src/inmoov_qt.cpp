@@ -338,7 +338,7 @@ void inmoov_qt::on_pushButtonHeadTracking_clicked()
     String camera_id = ui->lineEditSingleCam->text().toUtf8().constData();        
     SingleCapture singleCamera(std::stoi(camera_id), 640, 480);
         
-    FaceDetection faces;
+    FaceDetection faces(640, 480);
     FaceDetection::FacePosition pos = {0, 0, false};
     
     Head head(*comm);
@@ -419,7 +419,8 @@ void inmoov_qt::on_pushButtonHeadTracking_clicked()
             data_x = static_cast<uint8_t>(uk_x+50);
             data_y = static_cast<uint8_t>(uk_y+50);
           
-            //std::cout << "UK(x)= " << uk_x  << "   byte: " << (unsigned)data_x << "  x: " << pos.x*100 << " erro:  " << ek_x << std::endl;
+            std::cout << "UK(x)= " << uk_x  << "   byte: " << (unsigned)data_x << "  x: " << pos.x*100 << " erro:  " << ek_x << std::endl;
+            std::cout << "UK(y)= " << uk_y  << "   byte: " << (unsigned)data_y << "  y: " << pos.y*100 << " erro:  " << ek_y << std::endl;
             
             head.move_h(data_x);
             head.move_v(data_y);            
