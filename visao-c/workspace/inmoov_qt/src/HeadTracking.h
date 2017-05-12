@@ -17,34 +17,47 @@
  * 
  */
 
-#ifndef HEAD_H
-#define HEAD_H
+#ifndef HEADTRACKING_H
+#define HEADTRACKING_H
 
-#include "../Communication.h"
+#include <QMutex>
+#include <QSize>
+#include <QThread>
+#include <QWaitCondition>
 
-#include <stdint.h>
+class StereoCapture;
+class StereoVision;
 
-class Head
+class HeadTracking : public QThread
 {
-private:
-    uint8_t h_pos = 50;
-    uint8_t v_pos = 50;
+    Q_OBJECT
     
-    /* Command id: 1 -> Set servo position (0 to 100% where 50% is center ) */
-    const uint8_t PKG_CMD_ID = 1;
-    /* Servo addresses */
-    const uint8_t PKG_SERVO_ADDR_H = 0x01;
-    const uint8_t PKG_SERVO_ADDR_V = 0x00;
+protected:
     
-    Communication *comm;
+    
+private slots:
+    void onTimeout(); 
+    
     
 public:
+    HeadTracking();
+    ~HeadTracking();
     
-    bool move_v(uint8_t percent);
-    bool move_h(uint8_t percent);
+    void run(int leftCamIndex_, int rightCamIndex_);
+    void stop();
     
-    Head(Communication &comm_) {comm = &comm_;};
+    
+    
+private:
+    volatile bool stopped;
+    QMutex mutex;
+    
+    StereoCapture *cameras; 
+    StereoVision *vision; 
+    
+    int leftCamIndex;
+    int rightCamIndex;
         
 };
 
-#endif // HEAD_H
+#endif // HEADTRACKING_H

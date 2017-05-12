@@ -15,7 +15,7 @@ FaceDetection::FaceDetection(StereoCapture &capture){
     };
 }
 
-Mat FaceDetection::detect(Mat frame) {
+Mat FaceDetection::detect(Mat frame, FacePosition *pos) {
     
     if (face_cascade.empty())  {
         std::cerr << "--(!)Error loading face cascade: lbpcascade_frontalface.xml\n";
@@ -32,34 +32,43 @@ Mat FaceDetection::detect(Mat frame) {
         return frame;
     }
     
-    return detectAndDisplay(frame);
+    return detectAndDisplay(frame, pos);
        
 }
 
-Mat FaceDetection::detectAndDisplay(Mat frame)
+Mat FaceDetection::detectAndDisplay(Mat frame, FacePosition *pos)
 {
     std::vector<Rect> faces;
     Mat frame_gray;
-
+   
     cvtColor( frame, frame_gray, COLOR_BGR2GRAY );
     equalizeHist( frame_gray, frame_gray );
 
     //-- Detect faces
-    face_cascade.detectMultiScale( frame_gray, faces, 1.1, 2, 0, Size(80, 80) );
+    face_cascade.detectMultiScale( frame_gray, faces, 1.1, 5, 0, Size(50, 50) );
 
-    for( size_t i = 0; i < faces.size(); i++ )
+    pos->detected = false;
+    
+    if (faces.size() > 0)
+    //for( size_t i = 0; i < faces.size(); i++ )
     {
-        Mat faceROI = frame_gray(faces[i]);
+        Mat faceROI = frame_gray(faces[0]);
         std::vector<Rect> eyes;
 
         //-- In each face, detect eyes
-        eyes_cascade.detectMultiScale( faceROI, eyes, 1.1, 2, 0 |CASCADE_SCALE_IMAGE, Size(30, 30) );
-        if( eyes.size() == 2)
-        {
+     //   eyes_cascade.detectMultiScale( faceROI, eyes, 1.1, 2, 0 |CASCADE_SCALE_IMAGE, Size(30, 30) );
+       // if( eyes.size() == 2)
+       // {
             //-- Draw the face
-            Point center( faces[i].x + faces[i].width/2, faces[i].y + faces[i].height/2 );
-            ellipse( frame, center, Size( faces[i].width/2, faces[i].height/2 ), 0, 0, 360, Scalar( 255, 0, 0 ), 2, 8, 0 );
-        }
+            Point center( faces[0].x + faces[0].width/2, faces[0].y + faces[0].height/2 );
+            ellipse( frame, center, Size( faces[0].width/2, faces[0].height/2 ), 0, 0, 360, Scalar( 255, 0, 0 ), 2, 8, 0 );
+            
+            pos->x =  ((faces[0].x + faces[0].width/2) / (float)cameras->getFrameWidth());
+            pos->y = ((faces[0].y + faces[0].height/2) / (float)cameras->getFrameHeight());  
+            
+            pos->detected = true;
+            
+        //}
     }
     
     return frame;

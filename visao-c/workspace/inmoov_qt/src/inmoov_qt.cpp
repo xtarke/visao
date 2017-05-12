@@ -1,10 +1,11 @@
 #include <iostream>
+#include <QErrorMessage>
+#include <string>
+#include <QtSerialPort/QtSerialPort>
 
 #include "inmoov_qt.h"
 #include "ui_inmoov_qt.h"
 #include "opencv2/opencv.hpp"
-
-
 
 #include "remotecontrolwindow.h"
 
@@ -12,9 +13,10 @@
 #include "StereoVision.h"
 #include "FaceDetection.h"
 
-#include <QErrorMessage>
-#include <string>
-#include <QtSerialPort/QtSerialPort>
+#include "HeadTracking.h"
+
+#include "robot/Head.h"
+
 
 inmoov_qt::inmoov_qt(QWidget *parent) :
     QMainWindow(parent),
@@ -25,28 +27,16 @@ inmoov_qt::inmoov_qt(QWidget *parent) :
     cameras = NULL;
     vision = NULL;
     
-    serial = new QSerialPort(this);    
-    remotecontrol = new RemoteControlWindow(this, serial);
+    /* Setup serial communication */
+    serial = new QSerialPort(this);  
+    comm = new Communication(*serial);
     
-//     serial->setBaudRate(QSerialPort::Baud9600);
-//     serial->setDataBits(QSerialPort::Data8);
-//     serial->setParity(QSerialPort::NoParity);
-//     serial->setStopBits(QSerialPort::OneStop);
-    
-//      pos = 50;
-    
+    remotecontrol = new RemoteControlWindow(this, comm);    
     error_message = new QErrorMessage(parent);
     
-    //connect callback functions
-    connect(ui->pushButtonOpenCams, SIGNAL (clicked()), this, SLOT (on_pushButtonOpen_clicked()));
-    connect(ui->pushButtonCaptureTest, SIGNAL (clicked()), this, SLOT (on_pushButtonCaptureTest_cliked()));
-    connect(ui->pushButtonRelesCams, SIGNAL (clicked()), this, SLOT (on_pushButtonRelesCams_cliked()));
-    connect(ui->pushButtonCalibrate, SIGNAL (clicked()), this, SLOT (on_pushButtonCalibrate_cliked()));
-    connect(ui->pushButtonFaceDetect, SIGNAL (clicked()), this, SLOT (on_pushButtonFaceDetect_cliked()));
-    connect(ui->pushButtonLoadCalib, SIGNAL(clicked()), this, SLOT (on_pushButtonLoadCalib_clicked()));
+    headtrackingThread = new HeadTracking();
     
-    connect(ui->pushButtonTestDisparity, SIGNAL(clicked()), this, SLOT(on_pushButtonTestDisparity_cliked()));
- 
+    //Non automoc connect callback functions
     connect(ui->spinBoxTexture, SIGNAL(valueChanged(int)), ui->hSliderTexture, SLOT(setValue(int)));
     connect(ui->hSliderTexture, SIGNAL(valueChanged(int)), ui->spinBoxTexture, SLOT(setValue(int)));
     connect(ui->spinBoxTexture, SIGNAL(valueChanged(int)), this, SLOT(configTextureThreshold(int)));
@@ -65,16 +55,6 @@ inmoov_qt::inmoov_qt(QWidget *parent) :
     connect(ui->spinBoxUniqueness, SIGNAL(valueChanged(int)), ui->hSliderUniqueness, SLOT(setValue(int)));
     connect(ui->hSliderUniqueness, SIGNAL(valueChanged(int)), ui->spinBoxUniqueness, SLOT(setValue(int)));
     connect(ui->spinBoxUniqueness, SIGNAL(valueChanged(int)), this, SLOT(configUniquenessRatio(int)));
-    
-    
-    /* Signals are already connected */
-    //connect(ui->pushButtonOpenSerial, SIGNAL(clicked()), this, SLOT(on_pushButtonOpenSerial_clicked()));
-    connect(ui->pushButtonMoveRight, SIGNAL(clicked()), this, SLOT(on_pushButtonMoveRight_cliced()));
-    //connect(ui->pushButtonMoveLeft, SIGNAL(clicked()), this, SLOT(on_pushButtonMoveLeft_clicked()));
-    
-    connect(ui->actionConfig_Serial, SIGNAL(triggered()), this, SLOT(on_actionConfig_Serial_clicked()));
-
-    
 }
 
 inmoov_qt::~inmoov_qt()
@@ -92,10 +72,16 @@ inmoov_qt::~inmoov_qt()
     
     if (vision)
         delete vision;
+    
+    if (headtrackingThread)
+        if (headtrackingThread->isRunning()){
+            headtrackingThread->quit();
+            delete headtrackingThread;
+        }
 }
 
 
-void inmoov_qt::on_pushButtonOpen_clicked(){
+void inmoov_qt::on_pushButtonOpenCams_clicked(){
     
     String left_id = ui->lineEditLeftCam->text().toUtf8().constData();
     String rigt_id = ui->lineEditRightCam->text().toUtf8().constData();
@@ -124,7 +110,7 @@ void inmoov_qt::on_pushButtonOpen_clicked(){
    
 }
 
-void inmoov_qt::on_pushButtonCaptureTest_cliked()
+void inmoov_qt::on_pushButtonCaptureTest_clicked()
 {
     
     cv::Mat frame_1;
@@ -164,7 +150,7 @@ void inmoov_qt::on_pushButtonCaptureTest_cliked()
     ui->pushButtonTestDisparity->setDisabled(false);
 }
 
-void inmoov_qt::on_pushButtonRelesCams_cliked()
+void inmoov_qt::on_pushButtonRelesCams_clicked()
 {
     ui->lineEditLeftCam->setDisabled(false);
     ui->lineEditRightCam->setDisabled(false);    
@@ -185,7 +171,7 @@ void inmoov_qt::on_pushButtonRelesCams_cliked()
     vision = NULL;
 }
 
-void inmoov_qt::on_pushButtonCalibrate_cliked(){
+void inmoov_qt::on_pushButtonCalibrate_clicked(){
     
     vector<Mat> imagelist;
     Mat frame;
@@ -253,7 +239,7 @@ void inmoov_qt::on_pushButtonLoadCalib_clicked()
 
 
 
-void inmoov_qt::on_pushButtonFaceDetect_cliked()
+void inmoov_qt::on_pushButtonFaceDetect_clicked()
 {
     cv::Mat frame_1;
     char key;
@@ -266,23 +252,101 @@ void inmoov_qt::on_pushButtonFaceDetect_cliked()
     ui->pushButtonTestDisparity->setDisabled(true);
     
     FaceDetection faces(*cameras);
+    FaceDetection::FacePosition pos = {0.5, 0.5, false};
+    
+    Head head(*comm);
+    
+    float        uk_x   = 0;
+    static float uk_1_x = 0;
+    float        ek_x   = 0;
+    static float ek_1_x = 0;
+    
+    float        uk_y   = 0;
+    static float uk_1_y = 0;
+    float        ek_y   = 0;
+    static float ek_1_y = 0;    
+    float q1 = 0;
+
+    /* pi constants */
+    const float KC = 0.05;
+    const float Ta = 0.100;
+    const float Ti = 0.1;
+    
+    q1 = -KC*(1 - Ta/Ti);
+    
+    uint8_t data_x;
+    uint8_t data_y;
+    
+    head.move_h(50);
+    head.move_v(50);   
+    
     
     while(1){
         cameras->capture();
 
         frame_1 = cameras->get_left_Frame();       
-        frame_1 = faces.detect(frame_1);
+        frame_1 = faces.detect(frame_1, &pos);
         
-        imshow("frame", frame_1);      
+        imshow("frame", frame_1); 
+        
+        if (pos.detected == true) {
+              
+            /* PI u(k) = u(k - 1) + q0.e(k) + q1.e(k-1)
+            * q0 = Kc
+            * q1 = -KC ( 1 - Ta / Ti )
+            * Ta = sample time
+            * Ti = integral time         */
+            ek_1_x = ek_x;
+            ek_x   = (0 - pos.x*100 + 50);
+
+            uk_1_x = uk_x;
+            uk_x   = uk_1_x + KC*ek_x + q1*ek_1_x;
+
+            /* saturation control */
+            if (uk_x < -50)
+                uk_x = -50;
+            /* saturation control */
+            if (uk_x > 50)
+                uk_x = 50;
             
+            /* for y axis */
+            ek_1_y = ek_y;
+            ek_y   = (0 - pos.y*100 + 50);
+
+            uk_1_y = uk_y;
+            uk_y   = uk_1_y + KC*ek_y + q1*ek_1_y;
+
+            /* saturation control */
+            if (uk_y < -50)
+                uk_y = -50;
+            /* saturation control */
+            if (uk_y > 50)
+                uk_y = 50;
+        
+           
+            data_x = static_cast<uint8_t>(uk_x+50);
+            data_y = static_cast<uint8_t>(uk_y+50);
+          
+            
+            std::cout << "UK(x)= " << uk_x  << "   byte: " << (unsigned)data_x << "  x: " << pos.x*100 << " erro:  " << ek_x <<  std::endl;
+            
+            head.move_h(data_x);
+            head.move_v(data_y);
+            
+        }
+        else{
+           head.move_h(data_x);
+           head.move_v(data_y);           
+        }
+              
         //wait for a key for 30ms: should be called render images on imshow();
-        key = (char) waitKey(30);
+        key = (char) waitKey(60);
 
         if (key == 'q' || key == 'Q') break;
 
     }
     
-    destroyAllWindows();
+    destroyAllWindows();    
     
     ui->pushButtonCaptureTest->setDisabled(false);
     ui->pushButtonRelesCams->setDisabled(false);
@@ -292,14 +356,12 @@ void inmoov_qt::on_pushButtonFaceDetect_cliked()
     ui->pushButtonTestDisparity->setDisabled(false);
 }
 
- void inmoov_qt::on_pushButtonTestDisparity_cliked(){
+ void inmoov_qt::on_pushButtonTestDisparity_clicked(){
      
      if (vision == NULL){     
         vision->stereoMatch();   
         destroyAllWindows();
-      
-     }
-     
+    }
  }
  
  void inmoov_qt::configNumDisparities(int nDisparities){
@@ -327,53 +389,38 @@ void inmoov_qt::configBlockSize(int BlockSize)
 }
 
 
-void inmoov_qt::on_actionConfig_Serial_clicked(){    
+void inmoov_qt::on_actionConfig_Serial_triggered(){    
 //     settings->show();        
 }
 
 
-void inmoov_qt::on_pushButtonOpenSerial_clicked(){
-     
+void inmoov_qt::on_pushButtonRemote_clicked(){    
     
     remotecontrol->show();
      
 }
 
-void inmoov_qt::on_pushButtonMoveLeft_clicked(){
-//     QByteArray data;
-//     
-//     if (!serial->isOpen()){
-//         error_message->showMessage("Serial port is not open!");     
-//         return;        
-//     }
-//     
-//     pos+=10;
-//     
-//     if (pos >= 100) pos = 100;
-//     
-//     data.resize(5);
-//     data[0] = 0x7e;                             //Inicializador - ST
-//     data[1] = 0x02;                             //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-//     data[2] = 0x01;                             //Identificador de comando - ID
-//     data[3] = pos;                              //Dados - DT
-//     data[4] = 0xff -  data[2] -  data[3];           //Checksum
-//     
-//     serial->write(data);
-}
-
-
-void inmoov_qt::on_pushButtonMoveRight_cliced(){
-
-
-}
-
-void inmoov_qt::on_received_serial_data(){
+void inmoov_qt::on_pushButtonHeadTracking_clicked()
+{
+    String left_id = ui->lineEditLeftCam->text().toUtf8().constData();
+    String rigt_id = ui->lineEditRightCam->text().toUtf8().constData();
     
-//     QByteArray data = serial->readAll();
-//     
-//     for (int i=0; i < data.size(); i++)
-//         cout << (char)data[i];
-//     
-//     std::cout.flush(); 
+    
+    if (ui->pushButtonHeadTracking->isChecked()){
+       
+        headtrackingThread->run(std::stoi(left_id), std::stoi(rigt_id));
+    }
+    else{
+        headtrackingThread->quit();
+    }
+
+    
+//    headtrackingThread->
+    
+    
 }
+
+
+
+
 

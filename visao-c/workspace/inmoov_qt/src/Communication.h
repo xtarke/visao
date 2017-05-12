@@ -20,21 +20,55 @@
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
+#include <QMutex>
+#include <iostream>
 #include <QtSerialPort/QtSerialPort>
 
-class Communication
+class Communication : public QObject
 {
+    Q_OBJECT
+    
+    
 private:
     QSerialPort *serial;
+    QMutex mutex;
+    
+    QQueue<QByteArray> queue;
         
+signals:
+    void PackageReady(QByteArray package);
+    
+private slots:
+    void SendData(QByteArray package);
+    
 public:
+    struct SerialSettings {
+        QString name;
+        qint32 baudRate;
+        QString stringBaudRate;
+        QSerialPort::DataBits dataBits;
+        QString stringDataBits;
+        QSerialPort::Parity parity;
+        QString stringParity;
+        QSerialPort::StopBits stopBits;
+        QString stringStopBits;
+        QSerialPort::FlowControl flowControl;
+        QString stringFlowControl;
+        bool localEchoEnabled;
+    };
+        
     Communication(QSerialPort &serial_);
     
+    void set_serial(SerialSettings p);    
     bool send_data(QByteArray data);
+    
     QByteArray send_rcv_data(QByteArray data);
+    static QByteArray make_pgk(QByteArray data);
     
-    QByteArray make_pgk(QByteArray data);
-    
+    bool isReady() {return serial->isOpen(); };
+    bool SerialClose() {serial->close(); };
+    bool SerialOpen() { return serial->open(QIODevice::ReadWrite); };
+        
 };
 
 #endif // COMMUNICATION_H

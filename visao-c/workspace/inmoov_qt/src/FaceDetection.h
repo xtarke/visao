@@ -5,18 +5,25 @@
 
 class FaceDetection
 {
+
+public:
+    
+    struct FacePosition{
+        float x;
+        float y;       
+        bool detected;
+    };    
+    
+    FaceDetection(StereoCapture &capture);    
+    Mat detect(Mat frame, FacePosition *pos);
+    
 private:
     StereoCapture *cameras;
     
     CascadeClassifier face_cascade;
     CascadeClassifier eyes_cascade;
     
-    Mat detectAndDisplay(Mat frame);
-    
-public:
-    FaceDetection(StereoCapture &capture);
-    
-    Mat detect(Mat frame);  
+    Mat detectAndDisplay(Mat frame, FacePosition *pos);
     
 };
 

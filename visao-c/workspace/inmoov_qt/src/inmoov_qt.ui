@@ -359,23 +359,19 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QPushButton" name="pushButtonOpenSerial">
+           <widget class="QPushButton" name="pushButtonRemote">
             <property name="text">
-             <string>OpenSerial</string>
+             <string>Remote</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButtonMoveLeft">
+           <widget class="QPushButton" name="pushButtonHeadTracking">
             <property name="text">
-             <string>MoveLeft</string>
+             <string>HeadTracking</string>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButtonMoveRight">
-            <property name="text">
-             <string>MoveRight</string>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
            </widget>
           </item>

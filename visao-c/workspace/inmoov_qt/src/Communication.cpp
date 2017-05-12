@@ -25,6 +25,27 @@
 Communication::Communication(QSerialPort& serial_)
 {
     serial = &serial_;
+    
+}
+
+void Communication::set_serial(Communication::SerialSettings p)
+{
+    serial->setPortName(p.name);
+    serial->setBaudRate(p.baudRate);
+    serial->setDataBits(p.dataBits);
+    serial->setParity(p.parity);
+    serial->setStopBits(p.stopBits);
+    serial->setFlowControl(p.flowControl);
+}
+
+void Communication::SendData(QByteArray package){
+    
+    QByteArray data = send_rcv_data(package);
+    
+    queue.enqueue(data);
+    
+    if (!queue.isEmpty())
+        emit PackageReady(queue.dequeue());
 }
 
 bool Communication::send_data(QByteArray data)
@@ -34,6 +55,8 @@ bool Communication::send_data(QByteArray data)
     if (!serial->isOpen())
         return false;
     
+    mutex.lock();
+    
     /* Discard buffered data */
     serial->readAll();
         
@@ -41,11 +64,9 @@ bool Communication::send_data(QByteArray data)
     serial->write(data);
     serial->flush();
     
-  
     /* ACK check */
     serial->waitForReadyRead(10);
 
-    
     QByteArray requestData = serial->readAll();
         
     /* Receive 6 bytes as reply */
@@ -56,24 +77,32 @@ bool Communication::send_data(QByteArray data)
             break;
     } 
         
-    std::cout << "-------------------" << std::endl;
+//     std::cout << "-------------------" << std::endl;
+//     
+//     for (int i=0; i < requestData.size(); i++){
+//         //std::cout << "Saida" << std::endl;
+//         std::cout << i << "  :   " << std::hex << (uint)requestData[i] << std::endl;
+//         
+//     }
     
-    for (int i=0; i < requestData.size(); i++){
-        //std::cout << "Saida" << std::endl;
-        std::cout << i << "  :   " << std::hex << (uint)requestData[i] << std::endl;
-        
-    }
+    mutex.unlock();
+    
+//      qDebug()<< "send_data: "<<QThread::currentThreadId();
     
     return true;
     
 }
 
 QByteArray Communication::send_rcv_data(QByteArray data){
-        
-    /* Check if device is open */
-//     if (!serial->isOpen())
-//         return false;
+     
+    QByteArray requestData;
     
+    /* Check if device is open */
+     if (!serial->isOpen())
+         return requestData;
+    
+    mutex.lock(); 
+     
     /* Discard buffered data */
     serial->readAll();
         
@@ -84,7 +113,7 @@ QByteArray Communication::send_rcv_data(QByteArray data){
     /* ACK check */
     serial->waitForReadyRead(10);
 
-    QByteArray requestData = serial->readAll();
+    requestData = serial->readAll();
         
     /* Receive 6 bytes as reply */
     while (serial->waitForReadyRead(10)){
@@ -93,7 +122,11 @@ QByteArray Communication::send_rcv_data(QByteArray data){
         if (requestData.size() == data.size())
             break;
     } 
-        
+    
+    mutex.unlock();
+    
+    // qDebug()<< "send_rcv_data: "<<QThread::currentThreadId();
+    
     return requestData;   
 }
 
@@ -101,13 +134,17 @@ QByteArray Communication::send_rcv_data(QByteArray data){
 QByteArray Communication::make_pgk(QByteArray data)
 {
     QByteArray package;
+    uint8_t checksum = 0xff;
     
     package += 0x7e;                                     //Inicializador - ST
     package += data.size();                               //Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
-    package += data[0];                                    //Identificador de comando - ID - 01 Manda Porcentagem Servo
-    package += data[1];                                   //Dados - DT (Adress do servo)
-    package += data[2];                                  //Dados - DT (Porcentagem)
-    package += 0xff -  package[2] -  package[3] - package[4];     //Checksum
     
+    for (int i=0; i < data.size(); i++){
+        package += data[i];                                    //Identificador de comando - ID - 01 Manda Porcentagem Servo
+        checksum -= data[i];    
+    }
+    
+    package += checksum;     //Checksum
+       
     return package;    
 }

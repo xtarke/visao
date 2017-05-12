@@ -6,9 +6,11 @@
 #include <QtSerialPort/QtSerialPort>
 #include "StereoCapture.h"
 #include "StereoVision.h"
+#include "Communication.h"
 
 class SettingsDialog;
 class RemoteControlWindow;
+class HeadTracking;
 
 namespace Ui {
 class inmoov_qt;
@@ -23,21 +25,21 @@ public:
     ~inmoov_qt();
     
 private slots:
-    void on_pushButtonOpen_clicked();
-    void on_pushButtonCaptureTest_cliked();
-    void on_pushButtonRelesCams_cliked();
-    void on_pushButtonCalibrate_cliked();
-    void on_pushButtonFaceDetect_cliked();
-    void on_pushButtonTestDisparity_cliked();
+    void on_pushButtonOpenCams_clicked();
+    void on_pushButtonCaptureTest_clicked();
+    void on_pushButtonRelesCams_clicked();
+    void on_pushButtonCalibrate_clicked();
+    void on_pushButtonFaceDetect_clicked();
+    void on_pushButtonTestDisparity_clicked();
     void on_pushButtonLoadCalib_clicked();
+    
+    void on_pushButtonHeadTracking_clicked();
     
     
     // Serial Port Slots
-    void on_pushButtonOpenSerial_clicked();
-    void on_pushButtonMoveLeft_clicked();
-    void on_pushButtonMoveRight_cliced();
-    void on_actionConfig_Serial_clicked();
-    void on_received_serial_data();
+    void on_pushButtonRemote_clicked();
+    void on_actionConfig_Serial_triggered();
+   
     
     void configNumDisparities(int nDisparities);
     void configTextureThreshold(int TextureThreshold);
@@ -49,11 +51,13 @@ private:
     RemoteControlWindow *remotecontrol;
     
     StereoCapture *cameras; 
-    StereoVision *vision;
-    
+    StereoVision *vision;    
     QErrorMessage *error_message;
     
     QSerialPort *serial;
+    Communication *comm;
+    
+    HeadTracking *headtrackingThread;
     
 };
 

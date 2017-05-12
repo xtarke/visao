@@ -9,9 +9,11 @@
 #include "Communication.h"
 #include "robot/Head.h"
 
+#include "SensorTread.h"
+
 #include <unistd.h>
 
-RemoteControlWindow::RemoteControlWindow(QWidget *parent,  QSerialPort *serial_) :
+RemoteControlWindow::RemoteControlWindow(QWidget *parent,  Communication *comm_) :
     QDialog(parent),
     ui(new Ui::RemoteControlWindow)
 {
@@ -19,35 +21,32 @@ RemoteControlWindow::RemoteControlWindow(QWidget *parent,  QSerialPort *serial_)
     
     error_message = new QErrorMessage(this);
     settings = new SettingsDialog;
-    
-    serial = serial_;
+    comm = comm_;
     
     memset(ServoPos, 50 , sizeof(ServoPos));
     
     timer = new QTimer(this);
-    
-//     connect(ui->toolButtonPort, SIGNAL (clicked()), this, SLOT (on_toolButtonPort_clicked()));
-//     connect(ui->toolButtonOpen, SIGNAL (clicked()), this, SLOT (on_toolButtonOpen_clicked()));
-//     connect(ui->toolButtonIncrease, SIGNAL (clicked()), this, SLOT (on_toolButtonIncrease_clicked()));
-//     connect(ui->toolButtonDecrease, SIGNAL (clicked()), this, SLOT (on_toolButtonDecrease_clicked()));
-//     
+        
+    sensors_thread = new SensorTread(*comm);
+        
     connect(ui->dial, SIGNAL(valueChanged(int)), this, SLOT (on_dialChanged()));
     connect(timer, SIGNAL(timeout()), this, SLOT(update_servo_current()));
-    connect(ui->pushButtonYes, SIGNAL(clicked()), this, SLOT(on_toolButtonYes_clicked()));
-    connect(ui->pushButtonNo, SIGNAL(clicked()), this, SLOT(on_toolButtonNo_clicked()));
+    connect(sensors_thread, SIGNAL(ReadMe(int)), ui->lcdNumber, SLOT(display(int)));
     
-    
-    
-    
+
     fillServoParameters();
     
 }
 
 RemoteControlWindow::~RemoteControlWindow()
 {
-    if (serial->isOpen())
-        serial->close();
+    if (comm->isReady())
+        comm->SerialClose();
 
+    if (sensors_thread->isRunning())
+        sensors_thread->quit();
+    
+    delete sensors_thread;
     delete ui;
     delete settings;
     delete error_message;
@@ -60,31 +59,27 @@ void RemoteControlWindow::on_toolButtonPort_clicked(){
 
 void RemoteControlWindow::on_toolButtonOpen_clicked(){
         
-    SettingsDialog::Settings p = settings->settings();
-    serial->setPortName(p.name);
-    serial->setBaudRate(p.baudRate);
-    serial->setDataBits(p.dataBits);
-    serial->setParity(p.parity);
-    serial->setStopBits(p.stopBits);
-    serial->setFlowControl(p.flowControl);
+    Communication::SerialSettings p = settings->settings();
     
-    if (!serial->isOpen())
-        if (!serial->open(QIODevice::ReadWrite)) {
+    comm->set_serial(p);
+ 
+    if (!comm->isReady()){
+        if (!comm->SerialOpen()) {
             error_message->showMessage("Could not open serial");
+            return;
         }
-    else{
-        serial->readAll();
-        ui->toolButtonClose->setEnabled(true);
-        ui->toolButtonIncrease->setEnabled(true);
-        ui->toolButtonDecrease->setEnabled(true);
-        
     }
+    
+    ui->toolButtonClose->setEnabled(true);
+    ui->toolButtonIncrease->setEnabled(true);
+    ui->toolButtonDecrease->setEnabled(true);
+    
 }
 
 void RemoteControlWindow::on_toolButtonClose_clicked()
 {
-    if (serial->isOpen()){
-        serial->close();
+    if (comm->isReady()){
+        comm->SerialClose();
         ui->toolButtonClose->setEnabled(false);
     }
 }
@@ -92,13 +87,12 @@ void RemoteControlWindow::on_toolButtonClose_clicked()
 void RemoteControlWindow::on_toolButtonIncrease_clicked(){
     QByteArray data;
     
-    Communication comm(*serial);
-    Head head(comm);
+    Head head(*comm);
     
     int currentIndex = ui->comboBoxServoList->currentIndex();    
     int ServoId = ui->comboBoxServoList->itemData(currentIndex).toInt();
     
-    if (!serial->isOpen()){
+    if (!comm->isReady()){
         error_message->showMessage("Serial port is not open!");     
         return;
     }
@@ -123,13 +117,12 @@ void RemoteControlWindow::on_toolButtonDecrease_clicked(){
         
     QByteArray data;
     
-    Communication comm(*serial);
-    Head head(comm);
+    Head head(*comm);
     
     int currentIndex = ui->comboBoxServoList->currentIndex();    
     int ServoId = ui->comboBoxServoList->itemData(currentIndex).toInt();
     
-    if (!serial->isOpen()){
+    if (!comm->isReady()){
         error_message->showMessage("Serial port is not open!");     
         return;
     }
@@ -156,21 +149,15 @@ void RemoteControlWindow::fillServoParameters()
     ui->comboBoxServoList->addItem(QStringLiteral("Head V"), 0x02);    
 }
 
-void RemoteControlWindow::on_received_serial_data(){    
-    QByteArray data = serial->readAll();
-   
-    //ui->plainTextEdit->insertPlainText(data);
-}
 
 void RemoteControlWindow::on_dialChanged(){
     
-    Communication comm(*serial);
-    Head head(comm);
+    Head head(*comm);
         
     int currentIndex = ui->comboBoxServoList->currentIndex();    
     int ServoId = ui->comboBoxServoList->itemData(currentIndex).toInt();
         
-    if (!serial->isOpen()){
+    if (!comm->isReady()){
         error_message->showMessage("Serial port is not open!");     
         return;
     }
@@ -185,66 +172,69 @@ void RemoteControlWindow::on_dialChanged(){
 }
 
 void RemoteControlWindow::on_toolButtonMov_clicked(){
- 
     
-    std::cout << "\ttimer on ";
     
-    timer->start(100);    
+    if (ui->toolButtonMov->isChecked()){
+       
+        sensors_thread->start();
+    }
+    else{
+        sensors_thread->quit();
+    }
+
 }
 
 void RemoteControlWindow::update_servo_current(){
     
-    Communication comm(*serial);
-    
-    const uint8_t PKG_CMD_ID = 0x11;
-    const uint8_t PKG_SERVO_ADDR_H = 0x00;
-    
-    QByteArray data;
-    QByteArray package;
-    QByteArray current;
-    
-    /* Package head data */
-    data += PKG_CMD_ID;
-    data += PKG_SERVO_ADDR_H;
-    
-    /* Package construction */
-    package = comm.make_pgk(data);
-    
-          
-    /* Send data */
-    current = comm.send_rcv_data(package);
-    
-//     std::cout << "-----------------------\n";
+//     const uint8_t PKG_CMD_ID = 0x11;
+//     const uint8_t PKG_SERVO_ADDR_H = 0x00;
 //     
-//     for (int i=0; i < current.size(); i++)
-//         std::cout << hex << (int)current[i] << std::endl;
+//     QByteArray data;
+//     QByteArray package;
+//     QByteArray current;
 //     
-//     std::cout << "-----------------------\n";
+//     /* Package head data */
+//     data += PKG_CMD_ID;
+//     data += PKG_SERVO_ADDR_H;
+//     
+//     /* Package construction */
+//     package = comm->make_pgk(data);
+//     
+//           
+//     /* Send data */
+//     current = comm->send_rcv_data(package);
+//     
+// //     std::cout << "-----------------------\n";
+// //     
+// //     for (int i=0; i < current.size(); i++)
+// //         std::cout << hex << (int)current[i] << std::endl;
+// //     
+// //     std::cout << "-----------------------\n";
+//    
+    //qDebug() << "TEsteeee eee ";
     
-    ui->lcdNumber->display((int)current[4]);
+    
+    ui->lcdNumber->display(sensors_thread->get_sensorValue(0));
 }
 
-void RemoteControlWindow::on_toolButtonYes_clicked(){
+void RemoteControlWindow::on_pushButtonYes_clicked(){
     
-    Communication comm(*serial);
-    Head head(comm);
+    Head head(*comm);
      
     for (int i=0; i < 5; i++){
         head.move_v(100); 
         QThread::sleep(1);  
         head.move_v(0); 
         QThread::sleep(1);
-
     }
     
     head.move_v(50); 
    
 }
  
-void RemoteControlWindow::on_toolButtonNo_clicked(){
+void RemoteControlWindow::on_pushButtonNo_clicked(){
     
-    Communication comm(*serial);
-    Head head(comm);
+    Head head(*comm);
      
     for (int i=0; i < 5; i++){
         head.move_h(100); 
@@ -254,8 +244,7 @@ void RemoteControlWindow::on_toolButtonNo_clicked(){
 
     }
     
-    head.move_h(50); 
-    
+    head.move_h(50);     
 }
 
 
