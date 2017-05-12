@@ -235,6 +235,20 @@ int main(void)
 						usartTransmit(packageData[i++]);
 					}
 					break;
+				case 0x13:	// packageData[1] = 0x13 - Leitura de corrente de todos os servos
+					packageAux[0] = packageData[0];
+					packageAux[1] = (uint8) (meanBuffer[2]);
+					packageAux[2] = (uint8) (meanBuffer[0]);
+					packageAux[3] = (uint8) (meanBuffer[1]);
+					packageAux[4] = (uint8) (meanBuffer[3]);
+
+					packageSize = buildTransmitPackageData(packageData, packageAux, 5);
+
+					i=0;
+					while(i<packageSize){
+						usartTransmit(packageData[i++]);
+					}
+					break;
 			}
 
 		} // End processamento pacotes
