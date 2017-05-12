@@ -30,8 +30,11 @@ RemoteControlWindow::RemoteControlWindow(QWidget *parent,  Communication *comm_)
     sensors_thread = new SensorTread(*comm);
         
     connect(ui->dial, SIGNAL(valueChanged(int)), this, SLOT (on_dialChanged()));
-    connect(timer, SIGNAL(timeout()), this, SLOT(update_servo_current()));
-    connect(sensors_thread, SIGNAL(ReadMe(int)), ui->lcdNumber, SLOT(display(int)));
+  //  connect(timer, SIGNAL(timeout()), this, SLOT(update_servo_current()));
+    connect(sensors_thread, SIGNAL(ReadMe_A0(double)), ui->lcdNumberA0, SLOT(display(double)));
+    connect(sensors_thread, SIGNAL(ReadMe_A1(double)), ui->lcdNumberA1, SLOT(display(double)));
+    connect(sensors_thread, SIGNAL(ReadMe_A2(double)), ui->lcdNumberA2, SLOT(display(double)));
+    connect(sensors_thread, SIGNAL(ReadMe_A3(double)), ui->lcdNumberA3, SLOT(display(double)));
     
 
     fillServoParameters();
@@ -194,36 +197,8 @@ void RemoteControlWindow::on_toolButtonMov_clicked(){
 }
 
 void RemoteControlWindow::update_servo_current(){
-    
-//     const uint8_t PKG_CMD_ID = 0x11;
-//     const uint8_t PKG_SERVO_ADDR_H = 0x00;
-//     
-//     QByteArray data;
-//     QByteArray package;
-//     QByteArray current;
-//     
-//     /* Package head data */
-//     data += PKG_CMD_ID;
-//     data += PKG_SERVO_ADDR_H;
-//     
-//     /* Package construction */
-//     package = comm->make_pgk(data);
-//     
-//           
-//     /* Send data */
-//     current = comm->send_rcv_data(package);
-//     
-// //     std::cout << "-----------------------\n";
-// //     
-// //     for (int i=0; i < current.size(); i++)
-// //         std::cout << hex << (int)current[i] << std::endl;
-// //     
-// //     std::cout << "-----------------------\n";
-//    
-    //qDebug() << "TEsteeee eee ";
-    
-    
-    ui->lcdNumber->display(sensors_thread->get_sensorValue(0));
+        
+    ui->lcdNumberA0->display(sensors_thread->get_sensorValue(0));
 }
 
 void RemoteControlWindow::on_pushButtonYes_clicked(){

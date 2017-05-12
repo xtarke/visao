@@ -77,11 +77,27 @@
       <widget class="QPlainTextEdit" name="plainTextEdit"/>
      </item>
      <item>
-      <widget class="QLCDNumber" name="lcdNumber">
-       <property name="smallDecimalPoint">
-        <bool>false</bool>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <property name="topMargin">
+        <number>0</number>
        </property>
-      </widget>
+       <item>
+        <widget class="QLCDNumber" name="lcdNumberA3"/>
+       </item>
+       <item>
+        <widget class="QLCDNumber" name="lcdNumberA2"/>
+       </item>
+       <item>
+        <widget class="QLCDNumber" name="lcdNumberA1"/>
+       </item>
+       <item>
+        <widget class="QLCDNumber" name="lcdNumberA0">
+         <property name="smallDecimalPoint">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
