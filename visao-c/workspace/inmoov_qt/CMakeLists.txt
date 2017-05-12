@@ -24,6 +24,7 @@ set(inmoov_qt_SRC
   src/robot/Head.cpp
   src/SensorTread.cpp
   src/HeadTracking.cpp
+  src/SingleCapture.cpp
 )
 
 # Create code from a list of Qt designer ui files.

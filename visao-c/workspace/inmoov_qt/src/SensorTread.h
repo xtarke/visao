@@ -19,7 +19,7 @@ class SensorWorker : public QObject
     
 private:
     QMutex mutex;    
-    uint8_t sensors_value[4];
+    uint8_t sensors_value_raw[4];
     
     
 private slots:
@@ -45,7 +45,7 @@ private:
     Communication *comm;    
     SensorWorker *worker;
     
-    uint8_t sensors_value[4];    
+    float sensors_value[4];    
    
     void run();
     
@@ -53,13 +53,16 @@ private slots:
     void onDataReady();
 
 signals:
-    void ReadMe(int data);
+    void ReadMe_A0(double data);
+    void ReadMe_A1(double data);
+    void ReadMe_A2(double data);
+    void ReadMe_A3(double data);
     
     
 public:
     SensorTread(Communication &comm_);
     
-    uint8_t get_sensorValue(int n) { return sensors_value[ n % 4]; };
+    float get_sensorValue(int n) { return sensors_value[ n % 4]; };
     
     
 };

@@ -14,11 +14,17 @@ public:
         bool detected;
     };    
     
-    FaceDetection(StereoCapture &capture);    
+    FaceDetection(StereoCapture &stereoCapture);
+    FaceDetection(int _frame_width, int _frame_height);    
+    
     Mat detect(Mat frame, FacePosition *pos);
     
 private:
-    StereoCapture *cameras;
+    StereoCapture *cameras; //must be removed
+    
+    
+    int frame_width;
+    int frame_height;
     
     CascadeClassifier face_cascade;
     CascadeClassifier eyes_cascade;

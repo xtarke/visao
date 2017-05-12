@@ -51,7 +51,8 @@ private:
     RemoteControlWindow *remotecontrol;
     
     StereoCapture *cameras; 
-    StereoVision *vision;    
+    StereoVision *vision;
+      
     QErrorMessage *error_message;
     
     QSerialPort *serial;

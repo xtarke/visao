@@ -1,3 +1,4 @@
+#include "SingleCapture.h"
 #include <iostream>
 #include <QErrorMessage>
 #include <string>
@@ -112,7 +113,6 @@ void inmoov_qt::on_pushButtonOpenCams_clicked(){
 
 void inmoov_qt::on_pushButtonCaptureTest_clicked()
 {
-    
     cv::Mat frame_1;
     cv::Mat frame_2;
     cv::Mat frame_3;    
@@ -252,34 +252,7 @@ void inmoov_qt::on_pushButtonFaceDetect_clicked()
     ui->pushButtonTestDisparity->setDisabled(true);
     
     FaceDetection faces(*cameras);
-    FaceDetection::FacePosition pos = {0.5, 0.5, false};
-    
-    Head head(*comm);
-    
-    float        uk_x   = 0;
-    static float uk_1_x = 0;
-    float        ek_x   = 0;
-    static float ek_1_x = 0;
-    
-    float        uk_y   = 0;
-    static float uk_1_y = 0;
-    float        ek_y   = 0;
-    static float ek_1_y = 0;    
-    float q1 = 0;
-
-    /* pi constants */
-    const float KC = 0.05;
-    const float Ta = 0.100;
-    const float Ti = 0.1;
-    
-    q1 = -KC*(1 - Ta/Ti);
-    
-    uint8_t data_x;
-    uint8_t data_y;
-    
-    head.move_h(50);
-    head.move_v(50);   
-    
+    FaceDetection::FacePosition pos = {0, 0, false};
     
     while(1){
         cameras->capture();
@@ -287,66 +260,16 @@ void inmoov_qt::on_pushButtonFaceDetect_clicked()
         frame_1 = cameras->get_left_Frame();       
         frame_1 = faces.detect(frame_1, &pos);
         
-        imshow("frame", frame_1); 
-        
-        if (pos.detected == true) {
-              
-            /* PI u(k) = u(k - 1) + q0.e(k) + q1.e(k-1)
-            * q0 = Kc
-            * q1 = -KC ( 1 - Ta / Ti )
-            * Ta = sample time
-            * Ti = integral time         */
-            ek_1_x = ek_x;
-            ek_x   = (0 - pos.x*100 + 50);
-
-            uk_1_x = uk_x;
-            uk_x   = uk_1_x + KC*ek_x + q1*ek_1_x;
-
-            /* saturation control */
-            if (uk_x < -50)
-                uk_x = -50;
-            /* saturation control */
-            if (uk_x > 50)
-                uk_x = 50;
+        imshow("frame", frame_1);      
             
-            /* for y axis */
-            ek_1_y = ek_y;
-            ek_y   = (0 - pos.y*100 + 50);
-
-            uk_1_y = uk_y;
-            uk_y   = uk_1_y + KC*ek_y + q1*ek_1_y;
-
-            /* saturation control */
-            if (uk_y < -50)
-                uk_y = -50;
-            /* saturation control */
-            if (uk_y > 50)
-                uk_y = 50;
-        
-           
-            data_x = static_cast<uint8_t>(uk_x+50);
-            data_y = static_cast<uint8_t>(uk_y+50);
-          
-            
-            std::cout << "UK(x)= " << uk_x  << "   byte: " << (unsigned)data_x << "  x: " << pos.x*100 << " erro:  " << ek_x <<  std::endl;
-            
-            head.move_h(data_x);
-            head.move_v(data_y);
-            
-        }
-        else{
-           head.move_h(data_x);
-           head.move_v(data_y);           
-        }
-              
         //wait for a key for 30ms: should be called render images on imshow();
-        key = (char) waitKey(60);
+        key = (char) waitKey(30);
 
         if (key == 'q' || key == 'Q') break;
 
     }
     
-    destroyAllWindows();    
+    destroyAllWindows();
     
     ui->pushButtonCaptureTest->setDisabled(false);
     ui->pushButtonRelesCams->setDisabled(false);
@@ -402,21 +325,145 @@ void inmoov_qt::on_pushButtonRemote_clicked(){
 
 void inmoov_qt::on_pushButtonHeadTracking_clicked()
 {
-    String left_id = ui->lineEditLeftCam->text().toUtf8().constData();
-    String rigt_id = ui->lineEditRightCam->text().toUtf8().constData();
-    
-    
-    if (ui->pushButtonHeadTracking->isChecked()){
-       
-        headtrackingThread->run(std::stoi(left_id), std::stoi(rigt_id));
-    }
-    else{
-        headtrackingThread->quit();
-    }
+    cv::Mat frame_1;
+    char key;
 
+    ui->pushButtonCaptureTest->setDisabled(true);
+    ui->pushButtonRelesCams->setDisabled(true);
+    ui->pushButtonCalibrate->setDisabled(true); 
+    ui->pushButtonRelesCams->setDisabled(true);  
+    ui->pushButtonFaceDetect->setDisabled(true);
+    ui->pushButtonTestDisparity->setDisabled(true);
     
-//    headtrackingThread->
+    String camera_id = ui->lineEditSingleCam->text().toUtf8().constData();        
+    SingleCapture singleCamera(std::stoi(camera_id), 640, 480);
+        
+    FaceDetection faces(640, 480);
+    FaceDetection::FacePosition pos = {0, 0, false};
     
+    Head head(*comm);
+    
+    float        uk_x   = 0;
+    static float uk_1_x = 0;
+    float        ek_x   = 0;
+    static float ek_1_x = 0;
+    
+    float        uk_y   = 0;
+    static float uk_1_y = 0;
+    float        ek_y   = 0;
+    static float ek_1_y = 0;    
+    float q1 = 0;
+
+    /* pi constants */
+    const float KC = 0.1;
+    const float Ta = 0.100;
+    const float Ti = 0.1;
+    
+    q1 = -KC*(1 - Ta/Ti);
+    
+    uint8_t data_x;
+    uint8_t data_y;
+    
+    head.move_h(50);
+    head.move_v(50);   
+    
+    singleCamera.start_cam();
+    
+    if (!singleCamera.isOpen()){
+         error_message->showMessage("VIDEOIO ERROR: V4L: single cv:id is not correct! Could not open camera");
+         return;
+    }
+        
+    while(1){
+        singleCamera.capture();
+
+        frame_1 = singleCamera.get_Frame();       
+        frame_1 = faces.detect(frame_1, &pos);
+        
+        imshow("frame", frame_1); 
+        
+        if (pos.detected == true) {
+              
+            /* PI u(k) = u(k - 1) + q0.e(k) + q1.e(k-1)
+            * q0 = Kc
+            * q1 = -KC ( 1 - Ta / Ti )
+            * Ta = sample time
+            * Ti = integral time         */
+            ek_1_x = ek_x;
+            ek_x   = (0 - pos.x*100 + 50);
+
+            uk_1_x = uk_x;
+            uk_x   = uk_1_x + KC*ek_x + q1*ek_1_x;
+
+            /* saturation control */
+            if (uk_x < -50)
+                uk_x = -50;
+            /* saturation control */
+            if (uk_x > 50)
+                uk_x = 50;
+            
+            /* for y axis */
+            ek_1_y = ek_y;
+            ek_y   = (0 - pos.y*100 + 50);
+
+            uk_1_y = uk_y;
+            uk_y   = uk_1_y + KC*ek_y + q1*ek_1_y;
+
+            /* saturation control */
+            if (uk_y < -50)
+                uk_y = -50;
+            /* saturation control */
+            if (uk_y > 50)
+                uk_y = 50;
+        
+            data_x = static_cast<uint8_t>(uk_x+50);
+            data_y = static_cast<uint8_t>(uk_y+50);
+          
+            std::cout << "UK(x)= " << uk_x  << "   byte: " << (unsigned)data_x << "  x: " << pos.x*100 << " erro:  " << ek_x << std::endl;
+            std::cout << "UK(y)= " << uk_y  << "   byte: " << (unsigned)data_y << "  y: " << pos.y*100 << " erro:  " << ek_y << std::endl;
+            
+            head.move_h(data_x);
+            head.move_v(data_y);            
+        }
+        else{
+           head.move_h(data_x);
+           head.move_v(data_y);           
+        }
+              
+        //wait for a key for 30ms: should be called render images on imshow();
+        key = (char) waitKey(60);
+
+        if (key == 'q' || key == 'Q') break;
+
+    }
+    
+    destroyAllWindows();    
+    
+    ui->pushButtonCaptureTest->setDisabled(false);
+    ui->pushButtonRelesCams->setDisabled(false);
+    ui->pushButtonCalibrate->setDisabled(false); 
+    ui->pushButtonRelesCams->setDisabled(false);
+    ui->pushButtonFaceDetect->setDisabled(false);
+    ui->pushButtonTestDisparity->setDisabled(false);
+    
+    singleCamera.stop_cam();
+    
+    
+//     String left_id = ui->lineEditLeftCam->text().toUtf8().constData();
+//     String rigt_id = ui->lineEditRightCam->text().toUtf8().constData();
+//     
+//     
+//     if (ui->pushButtonHeadTracking->isChecked()){
+//        
+//         headtrackingThread->run(std::stoi(left_id), std::stoi(rigt_id));
+//     }
+//     else{
+//         headtrackingThread->quit();
+//     }
+// 
+//     
+// //    headtrackingThread->
+//     
     
 }
 

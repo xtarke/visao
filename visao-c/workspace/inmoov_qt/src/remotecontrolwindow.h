@@ -52,7 +52,7 @@ private:
     
     void fillServoParameters();
     
-    uint8_t ServoPos[2];
+    uint8_t ServoPos[4];
     
 };
 

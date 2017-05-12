@@ -33,9 +33,15 @@ void SensorTread::run()
 
 void SensorTread::onDataReady()
 {
-       sensors_value[0] = worker->get_data(0);
-       
-       emit ReadMe((int)sensors_value[0]);   
+    sensors_value[0] = (double)worker->get_data(0) * 20. / 1023.;
+    sensors_value[1] = (double)worker->get_data(1) * 20. / 1023.;
+    sensors_value[2] = (double)worker->get_data(2) * 20. / 1023.;
+    sensors_value[3] = (double)worker->get_data(3) * 20. / 1023.;
+
+    emit ReadMe_A0((double)sensors_value[0]);   
+    emit ReadMe_A1((double)sensors_value[1]);   
+    emit ReadMe_A2((double)sensors_value[2]);   
+    emit ReadMe_A3((double)sensors_value[3]);   
 }
 
 
@@ -52,8 +58,7 @@ void SensorWorker::onTimeout()
     //qDebug()<<"Worker::onTimeout get called from?: "<<QThread::currentThreadId();    
     QMutexLocker locker(&mutex);
     
-    const uint8_t PKG_CMD_ID = 0x11;
-    const uint8_t PKG_SERVO_ADDR_H = 0x00;
+    const uint8_t PKG_CMD_ID = 0x13;
        
     QByteArray data;
     QByteArray package;
@@ -61,7 +66,6 @@ void SensorWorker::onTimeout()
     
     /* Package head data */
     data += PKG_CMD_ID;
-    data += PKG_SERVO_ADDR_H;
     
     /* Package construction */
     package = Communication::make_pgk(data);
@@ -75,7 +79,7 @@ uint8_t SensorWorker::get_data(int n)
     uint8_t data;
     QMutexLocker locker(&mutex);
     
-    data = sensors_value[n];
+    data = sensors_value_raw[n];
     
     return data;   
 }
@@ -85,5 +89,9 @@ void SensorWorker::PackageReady(QByteArray package){
     
     QMutexLocker locker(&mutex);
      
-    sensors_value[0] = package[4];
+    /* Reverser current calculation */
+    sensors_value_raw[0] = package[3];
+    sensors_value_raw[1] = package[4];
+    sensors_value_raw[2] = package[5];
+    sensors_value_raw[3] = package[6];
 }
