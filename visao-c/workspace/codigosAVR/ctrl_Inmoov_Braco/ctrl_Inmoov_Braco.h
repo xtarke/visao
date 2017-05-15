@@ -73,10 +73,10 @@
 #define CURRENT_LIMIT_MAX	163	// Valor maximo do ADC, antes de desligar PWM
 #define CURRENT_LIMIT_MIN	40	// Valor minimo do ADC, antes de religar PWM
 
-#define ADC0_CH 3
+#define ADC0_CH 1
 #define ADC1_CH 2
-#define ADC2_CH 1
-#define ADC3_CH 0
+#define ADC2_CH 0
+#define ADC3_CH 3
 
 // --------------------------------------------------------------------------------
 // Functions ----------------------------------------------------------------------
