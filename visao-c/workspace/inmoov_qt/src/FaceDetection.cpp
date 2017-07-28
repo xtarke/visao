@@ -47,13 +47,8 @@ Mat FaceDetection::detect(Mat frame, FacePosition *pos) {
         return frame;
     }
     
-    if (!cameras->isOpen()){
-        std::cerr << "--(!)Cameras not ready\n";
-        return frame;
-    }
-    
     return detectAndDisplay(frame, pos);
-       
+    
 }
 
 Mat FaceDetection::detectAndDisplay(Mat frame, FacePosition *pos)
@@ -65,7 +60,7 @@ Mat FaceDetection::detectAndDisplay(Mat frame, FacePosition *pos)
     equalizeHist( frame_gray, frame_gray );
 
     //-- Detect faces
-    face_cascade.detectMultiScale( frame_gray, faces, 1.1, 5, 0, Size(50, 50) );
+    face_cascade.detectMultiScale( frame_gray, faces, 1.1, 5, 0, Size(75, 75) );
 
     pos->detected = false;
     

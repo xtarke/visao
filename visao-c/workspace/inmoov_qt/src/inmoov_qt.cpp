@@ -364,8 +364,8 @@ void inmoov_qt::on_pushButtonHeadTracking_clicked()
     uint8_t data_x;
     uint8_t data_y;
     
-    head.move_h(50);
-    head.move_v(50);   
+    //head.move_h(50);
+    //head.move_v(50);   
     
     singleCamera.start_cam();
     
@@ -425,11 +425,7 @@ void inmoov_qt::on_pushButtonHeadTracking_clicked()
             head.move_h(data_x);
             head.move_v(data_y);            
         }
-        else{
-           head.move_h(data_x);
-           head.move_v(data_y);           
-        }
-              
+                   
         //wait for a key for 30ms: should be called render images on imshow();
         key = (char) waitKey(60);
 
@@ -447,24 +443,6 @@ void inmoov_qt::on_pushButtonHeadTracking_clicked()
     ui->pushButtonTestDisparity->setDisabled(false);
     
     singleCamera.stop_cam();
-    
-    
-//     String left_id = ui->lineEditLeftCam->text().toUtf8().constData();
-//     String rigt_id = ui->lineEditRightCam->text().toUtf8().constData();
-//     
-//     
-//     if (ui->pushButtonHeadTracking->isChecked()){
-//        
-//         headtrackingThread->run(std::stoi(left_id), std::stoi(rigt_id));
-//     }
-//     else{
-//         headtrackingThread->quit();
-//     }
-// 
-//     
-// //    headtrackingThread->
-//     
-    
 }
 
 

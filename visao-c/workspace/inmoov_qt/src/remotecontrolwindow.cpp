@@ -113,7 +113,7 @@ void RemoteControlWindow::on_toolButtonIncrease_clicked(){
         head.move_v(ServoPos[ServoId]);
     
     
-    ui->dial->setValue(int(ServoPos[ServoId]));
+    //ui->dial->setValue(int(ServoPos[ServoId]));
 }
 
 void RemoteControlWindow::on_toolButtonDecrease_clicked(){  
@@ -143,7 +143,7 @@ void RemoteControlWindow::on_toolButtonDecrease_clicked(){
         head.move_v(ServoPos[ServoId]);
     
     
-    ui->dial->setValue(int(ServoPos[ServoId]));
+    //ui->dial->setValue(int(ServoPos[ServoId]));
 }
 
 void RemoteControlWindow::fillServoParameters()
