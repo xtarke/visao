@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( gpu )
+find_package( OpenCV REQUIRED )
+add_executable( gpu gpu.cpp )
+target_link_libraries( gpu ${OpenCV_LIBS} ) 

@@ -1,0 +1,40 @@
+Data ultima modificação: 15/02/2017
+
+Inicializador - ST
+Tamanho	- SZ - Tamanho do pacote em bytes (ID e DT)
+Identificador de comando - ID
+Dados - DT
+Checksum - CH - Conta tudo menos ST e SZ
+
+
+ST SZ ID DT CH
+7E -- -- -- --
+
+
+Pacotes de dados
+Comando de movimentação de servo
+data[0](ID) - Se ID = 01
+data[1]     - Adress servo
+data[2]     - Porcentagem 
+
+Se ID = 02 (seta limites) - Valores multiplos de 10(?)
+D3 D2 D1 D0
+data[0] - D3 - Adress servo
+data[1] - D2 - se 0x00 meio
+             - se 0x01 limite superior
+             - se 0x02 limite inferior
+data[2] - D1 - Byte mais significativo do valor
+data[3] - D0 - Byte menos significativo do valor
+
+
+Pacote de resposta:
+
+A resposta do pacote é um eco do pacote enviado. A única alteração é o identificador do comando (ID) que tem um acrescimo de 0x7F, e por consequência o checksum.
+Exemplo:
+Envio:
+ST SZ ID DT DT CH	-- Comando de mover o servo 02 para posição 10%
+7E 03 01 02 10 EC
+Resposta:
+ST SZ ID DT DT CH	-- Comando de resposta
+7E 03 80 02 10 6D
+

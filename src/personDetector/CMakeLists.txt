@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( person )
+find_package( OpenCV REQUIRED )
+add_executable( person ./src/personHOG.cpp )
+target_link_libraries( person ${OpenCV_LIBS} ) 
