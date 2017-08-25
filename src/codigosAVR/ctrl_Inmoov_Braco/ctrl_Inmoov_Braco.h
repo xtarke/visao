@@ -45,15 +45,15 @@
 // Servo2 - PD6
 // Servo3 - PD5
 
-#define PWM1_DDR	DDRD
-#define PWM1_PORT	PORTD
-#define PWM1_PIN	PIND
-#define PWM1_BIT	PD7
+#define PWM0_DDR	DDRD
+#define PWM0_PORT	PORTD
+#define PWM0_PIN	PIND
+#define PWM0_BIT	PD7
 
-#define PWM0_DDR	DDRB
-#define PWM0_PORT	PORTB
-#define PWM0_PIN	PINB
-#define PWM0_BIT	PB0
+#define PWM1_DDR	DDRB
+#define PWM1_PORT	PORTB
+#define PWM1_PIN	PINB
+#define PWM1_BIT	PB0
 
 #define PWM2_DDR	DDRD
 #define PWM2_PORT	PORTD
@@ -73,11 +73,10 @@
 #define CURRENT_LIMIT_MAX	163	// Valor maximo do ADC, antes de desligar PWM
 #define CURRENT_LIMIT_MIN	40	// Valor minimo do ADC, antes de religar PWM
 
-
-#define ADC0_CH 3
+#define ADC0_CH 1
 #define ADC1_CH 2
-#define ADC2_CH 1
-#define ADC3_CH 0
+#define ADC2_CH 0
+#define ADC3_CH 3
 
 // --------------------------------------------------------------------------------
 // Functions ----------------------------------------------------------------------

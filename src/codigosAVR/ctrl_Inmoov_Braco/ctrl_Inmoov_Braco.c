@@ -20,7 +20,7 @@
 // --------------------------------------------------------------------------------
 //  System definitions ------------------------------------------------------------
 
-#define F_CPU 20000000UL
+#define F_CPU 16000000UL
 
 
 // --------------------------------------------------------------------------------
@@ -90,9 +90,9 @@ int main(void)
 	uint8 nextWrite[4];	// Aponta pro próximo local a ser escrito
 	memset(nextWrite, 0, 4);
 	uint16 totalBuffer[4];		// 16 bits são suficientes para até 64 valores de janela
-	memset(totalBuffer, 0, 4);
+	memset(totalBuffer, 0, 8);
 	uint16 meanBuffer[4];
-	memset(meanBuffer, 0, 4);
+	memset(meanBuffer, 0, 8);
 	uint8 aux8;
 
 	// Global variables initialization
@@ -232,6 +232,20 @@ int main(void)
 					//packageSize = 4;
 					while(i<packageSize){
 //						cplBit(PORTD, PD2);
+						usartTransmit(packageData[i++]);
+					}
+					break;
+				case 0x13:	// packageData[1] = 0x13 - Leitura de corrente de todos os servos
+					packageAux[0] = packageData[0];
+					packageAux[1] = (uint8) (meanBuffer[ADC0_CH]);
+					packageAux[2] = (uint8) (meanBuffer[ADC1_CH]);
+					packageAux[3] = (uint8) (meanBuffer[ADC2_CH]);
+					packageAux[4] = (uint8) (meanBuffer[ADC3_CH]);
+
+					packageSize = buildTransmitPackageData(packageData, packageAux, 5);
+
+					i=0;
+					while(i<packageSize){
 						usartTransmit(packageData[i++]);
 					}
 					break;
