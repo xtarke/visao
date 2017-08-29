@@ -34,6 +34,7 @@ private slots:
     
     void on_pushButtonYes_clicked();
     void on_pushButtonNo_clicked();
+    void on_pushButtonLed_clicked();
     
     void on_dialChanged();    
     void update_servo_current();

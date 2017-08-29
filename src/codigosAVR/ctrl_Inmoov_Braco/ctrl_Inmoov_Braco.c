@@ -20,7 +20,7 @@
 // --------------------------------------------------------------------------------
 //  System definitions ------------------------------------------------------------
 
-#define F_CPU 16000000UL
+#define F_CPU 20000000UL
 
 
 // --------------------------------------------------------------------------------
@@ -104,9 +104,12 @@ int main(void)
 	setBit(flagsPWM, ACT_PWM3);
 
 	// Led azul teste funcionamento
-	setBit(DDRB,PB0);
+	// setBit(DDRB,PB1);
 	// Pinos auxiliares P9
-//	setBit(DDRD, PD2);
+	setBit(PORTB, PB1);
+	setBit(DDRD, PD2);
+	setBit(DDRD, PD3);
+	setBit(DDRD, PD4);
 
 	// Inicialização valores dos servos
 //	minCount[0] = 1300;
@@ -195,6 +198,8 @@ int main(void)
 		if(packageReady){
 			// Maquina de tratamento do pacote
 
+			uint8_t data;
+
 			packageReady = 0;
 			packageIndex = 0;
 
@@ -248,6 +253,30 @@ int main(void)
 					while(i<packageSize){
 						usartTransmit(packageData[i++]);
 					}
+					break;
+				case 0x14:
+					packageAux[0] = packageData[0];
+					data = packageData[1];
+
+					/* TODO: * Send ACK	 */
+
+					if (data == 1){
+						setBit(PORTB,PB1);
+
+						setBit(PORTD, PD2);
+						setBit(PORTD, PD3);
+						setBit(PORTD, PD4);
+
+					}
+					else {
+						clrBit(PORTB,PB1);
+
+						clrBit(PORTD,PD2);
+						clrBit(PORTD,PD3);
+						clrBit(PORTD,PD3);
+					}
+
+
 					break;
 			}
 

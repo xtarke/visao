@@ -383,7 +383,8 @@ void inmoov_qt::on_pushButtonHeadTracking_clicked()
         imshow("frame", frame_1); 
         
         if (pos.detected == true) {
-              
+
+            head.led_on();
             /* PI u(k) = u(k - 1) + q0.e(k) + q1.e(k-1)
             * q0 = Kc
             * q1 = -KC ( 1 - Ta / Ti )
@@ -425,6 +426,8 @@ void inmoov_qt::on_pushButtonHeadTracking_clicked()
             head.move_h(data_x);
             head.move_v(data_y);            
         }
+        else
+             head.led_off();
                    
         //wait for a key for 30ms: should be called render images on imshow();
         key = (char) waitKey(60);

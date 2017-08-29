@@ -42,6 +42,32 @@ bool Head::move_h(uint8_t percent)
     return comm->send_data(package);    
 }
 
+void Head::led_on(){
+    QByteArray data;
+    QByteArray package;
+
+    led_state = ON;
+
+    /* Package led data */
+    data += PKG_EYELED_ADDR;
+    data += (uint8_t) led_state;
+
+    package = comm->make_pgk(data);
+}
+
+void Head::led_off(){
+    QByteArray data;
+    QByteArray package;
+
+    led_state = OFF;
+
+    /* Package led data */
+    data += PKG_EYELED_ADDR;
+    data += (uint8_t) led_state;
+
+    package = comm->make_pgk(data);
+}
+
 bool Head::move_v(uint8_t percent)
 {
     QByteArray data;

@@ -26,25 +26,37 @@
 
 class Head
 {
+public:
+    bool move_v(uint8_t percent);
+    bool move_h(uint8_t percent);
+
+    void led_on();
+    void led_off();
+
+    Head(Communication &comm_) {comm = &comm_;};
+
+    typedef enum ledState{
+            ON = 0,
+            OFF = 1
+    } ledState_t;
+
+    ledState_t get_ledState() {return led_state;}
+
 private:
     uint8_t h_pos = 50;
     uint8_t v_pos = 50;
+
+    ledState_t led_state = OFF;
     
     /* Command id: 1 -> Set servo position (0 to 100% where 50% is center ) */
     const uint8_t PKG_CMD_ID = 1;
     /* Servo addresses */
     const uint8_t PKG_SERVO_ADDR_H = 0x01;
     const uint8_t PKG_SERVO_ADDR_V = 0x00;
+    /* Eyes addresses */
+    const uint8_t PKG_EYELED_ADDR = 0x14;
     
-    Communication *comm;
-    
-public:
-    
-    bool move_v(uint8_t percent);
-    bool move_h(uint8_t percent);
-    
-    Head(Communication &comm_) {comm = &comm_;};
-        
+    Communication *comm;    
 };
 
 #endif // HEAD_H

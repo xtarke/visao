@@ -184,8 +184,7 @@ void RemoteControlWindow::on_dialChanged(){
             
 }
 
-void RemoteControlWindow::on_toolButtonMov_clicked(){
-    
+void RemoteControlWindow::on_toolButtonMov_clicked(){    
     
     if (ui->toolButtonMov->isChecked()){       
         sensors_thread->start();
@@ -193,7 +192,6 @@ void RemoteControlWindow::on_toolButtonMov_clicked(){
     else{
         sensors_thread->quit();
     }
-
 }
 
 void RemoteControlWindow::update_servo_current(){
@@ -212,10 +210,60 @@ void RemoteControlWindow::on_pushButtonYes_clicked(){
         QThread::sleep(1);
     }
     
-    head.move_v(50); 
-   
+    head.move_v(50);
 }
  
+
+void RemoteControlWindow::on_pushButtonLed_clicked(){
+
+    static uint8_t led = 0;
+    Head head(*comm);
+
+    if (!comm->isReady()){
+        error_message->showMessage("Serial port is not open!");
+        return;
+    }
+
+    if (led == 0){
+        led = 1;
+        head.led_on();
+    }
+    else{
+        led = 0;
+        head.led_off();
+    }
+
+
+    /* static uint8_t led = 0;
+
+	QByteArray data;
+	QByteArray package;
+
+	if (!comm->isReady()){
+		error_message->showMessage("Serial port is not open!");
+		return;
+	}
+
+	if (led == 0)        	
+            led = 1;
+	else
+            led = 0;
+
+        data += 0x14;
+	data += led;
+
+	package = comm->make_pgk(data);
+
+	comm->send_data(package);
+
+	for (int i=0; i < package.size(); i++){
+		std::cout << (unsigned int) package[i] << std::endl;
+	}
+
+        std::cout << "LED: " << (int)led << std::endl; */
+}
+
+
 void RemoteControlWindow::on_pushButtonNo_clicked(){
     
     Head head(*comm);
