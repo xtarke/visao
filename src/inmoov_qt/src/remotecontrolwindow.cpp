@@ -25,17 +25,21 @@ RemoteControlWindow::RemoteControlWindow(QWidget *parent,  Communication *comm_)
     
     memset(ServoPos, 50 , sizeof(ServoPos));
     
-    timer = new QTimer(this);
+    timer_yes = new QTimer(this);
+    timer_no = new QTimer(this);
         
     sensors_thread = new SensorTread(*comm);
         
     connect(ui->dial, SIGNAL(valueChanged(int)), this, SLOT (on_dialChanged()));
-  //  connect(timer, SIGNAL(timeout()), this, SLOT(update_servo_current()));
+
     connect(sensors_thread, SIGNAL(ReadMe_A0(double)), ui->lcdNumberA0, SLOT(display(double)));
     connect(sensors_thread, SIGNAL(ReadMe_A1(double)), ui->lcdNumberA1, SLOT(display(double)));
     connect(sensors_thread, SIGNAL(ReadMe_A2(double)), ui->lcdNumberA2, SLOT(display(double)));
     connect(sensors_thread, SIGNAL(ReadMe_A3(double)), ui->lcdNumberA3, SLOT(display(double)));
     
+    connect(timer_no, SIGNAL(timeout()), this, SLOT(onTimerNoTimeout()));
+    connect(timer_yes, SIGNAL(timeout()), this, SLOT(onTimerYesTimeout()));
+
 
     fillServoParameters();
     
@@ -201,16 +205,22 @@ void RemoteControlWindow::update_servo_current(){
 
 void RemoteControlWindow::on_pushButtonYes_clicked(){
     
+    /* Current on/off state */
+    static bool on = false;
+    /* Robot head */
     Head head(*comm);
-     
-    for (int i=0; i < 5; i++){
-        head.move_v(100); 
-        QThread::sleep(1);  
-        head.move_v(0); 
-        QThread::sleep(1);
+
+    if (on == false){
+        timer_yes->setInterval(1000);
+        timer_yes->start();
+        on = true;
+        ui->pushButtonYes->setChecked(true);
+    }else {
+        timer_yes->stop();
+        head.move_v(50);
+        ui->pushButtonYes->setChecked(false);
+        on = false;
     }
-    
-    head.move_v(50);
 }
  
 
@@ -265,18 +275,53 @@ void RemoteControlWindow::on_pushButtonLed_clicked(){
 
 
 void RemoteControlWindow::on_pushButtonNo_clicked(){
-    
+    /* Current on/off state */
+    static bool on = false;
+    /* Robot head */
     Head head(*comm);
-     
-    for (int i=0; i < 5; i++){
-        head.move_h(100); 
-        QThread::sleep(1);  
-        head.move_h(0); 
-        QThread::sleep(1);
 
+    if (on == false){
+        timer_no->setInterval(1000);
+        timer_no->start();
+        on = true;
+        ui->pushButtonNo->setChecked(true);
+    }else {
+        timer_no->stop();
+        head.move_h(50);
+        ui->pushButtonNo->setChecked(false);
+        on = false;
     }
-    
-    head.move_h(50);     
+
 }
 
+void RemoteControlWindow::onTimerYesTimeout(){
+    /* Robot head */
+    Head head(*comm);
+    /* Current side */
+    static bool up = false;
 
+    if (up == false){
+        head.move_h(100);
+        up = true;
+    }
+    else {
+        head.move_h(0);
+        up = false;
+    }
+}
+
+void RemoteControlWindow::onTimerNoTimeout(){
+    /* Robot head */
+    Head head(*comm);
+    /* Current side */
+    static bool left = false;
+
+    if (left == false){
+        head.move_v(100);
+        left = true;
+    }
+    else {
+        head.move_v(0);
+        left = false;
+    }
+}

@@ -39,6 +39,10 @@ private slots:
     void on_dialChanged();    
     void update_servo_current();
 
+    void onTimerYesTimeout();
+    void onTimerNoTimeout();
+
+
 private:
     Ui::RemoteControlWindow *ui;
     
@@ -47,8 +51,9 @@ private:
     
     QErrorMessage *error_message;
     
-    QTimer *timer;
-    
+    QTimer *timer_yes;
+    QTimer *timer_no;
+
     SensorTread *sensors_thread;
     
     void fillServoParameters();

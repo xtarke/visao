@@ -150,8 +150,20 @@
    </item>
    <item>
     <widget class="QPushButton" name="pushButtonYes">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="text">
       <string>Yes</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -159,6 +171,12 @@
     <widget class="QPushButton" name="pushButtonNo">
      <property name="text">
       <string>No</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
