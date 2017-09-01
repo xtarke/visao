@@ -19,11 +19,15 @@
 
 #include "Head.h"
 #include <iostream>
+#include <QDebug>
 
 bool Head::move_h(uint8_t percent)
 {
     QByteArray data;
     QByteArray package;
+    QByteArray response;
+    bool sent = 0;
+    uint8_t tries = 0;
     
     h_pos = percent;
     
@@ -34,17 +38,26 @@ bool Head::move_h(uint8_t percent)
     
     /* Package construction */
     package = comm->make_pgk(data);
-    
-    /* for (int i=0; i < package.size(); i++)
-        std::cout << hex << (int)package[i] << std::endl; */
-        
+
     /* Send data */
-    return comm->send_data(package);    
+    while (response.size() != 6 && tries < 5){
+        response = comm->send_rcv_data(package, PGK_CMD_SIZE);
+        tries++;
+    }
+    sent = checkAck(package, response);
+
+    if (sent == false)
+        std::cerr << "Comm error <move_v>: " << (int)tries << std::endl;
+
+    return sent;
 }
 
-void Head::led_on(){
+bool Head::led_on(){
     QByteArray data;
     QByteArray package;
+    QByteArray response;
+    bool sent = 0;
+    uint8_t tries = 0;
 
     led_state = ON;
 
@@ -52,12 +65,36 @@ void Head::led_on(){
     data += PKG_EYELED_ADDR;
     data += (uint8_t) led_state;
 
+    /* Package construction */
     package = comm->make_pgk(data);
+
+    /* Send data */
+    while (response.size() != (PGK_CMD_SIZE - 1) && tries < 5){
+        response = comm->send_rcv_data(package, PGK_CMD_SIZE - 1);
+        tries++;
+    }
+    sent = checkAck(package, response);
+
+    if (sent == false){
+        std::cerr << "Comm error <led_off>: " << (int)tries << std::endl;
+
+        for (int i=0; i < package.size(); i++)
+             std::cerr << "package[" << i << "] = " << std::hex << (unsigned int)response[i]  << std::endl;
+
+        std::cerr << "-----------------" << std::endl;
+        for (int i=0; i < response.size(); i++)
+             std::cerr << "response[" << i << "] = " << std::hex << (unsigned int)response[i]  << std::endl;
+    }
+
+    return sent;
 }
 
-void Head::led_off(){
+bool Head::led_off(){
     QByteArray data;
     QByteArray package;
+    QByteArray response;
+    bool sent = 0;
+    uint8_t tries = 0;
 
     led_state = OFF;
 
@@ -66,12 +103,37 @@ void Head::led_off(){
     data += (uint8_t) led_state;
 
     package = comm->make_pgk(data);
+
+    /* Send data */
+    while (response.size() != (PGK_CMD_SIZE - 1) && tries < 5){
+        response = comm->send_rcv_data(package, PGK_CMD_SIZE - 1);
+        tries++;
+    }
+
+    if (tries < 5)
+        sent = checkAck(package, response);
+
+    if (sent == false){
+        std::cerr << "Comm error <led_off>: " << (int)tries << std::endl;
+
+        for (int i=0; i < package.size(); i++)
+             std::cerr << "package[" << i << "] = " << std::hex << (unsigned int)response[i]  << std::endl;
+
+        std::cerr << "-----------------" << std::endl;
+        for (int i=0; i < response.size(); i++)
+             std::cerr << "response[" << i << "] = " << std::hex << (unsigned int)response[i]  << std::endl;
+    }
+
+    return sent;
 }
 
 bool Head::move_v(uint8_t percent)
 {
     QByteArray data;
     QByteArray package;
+    QByteArray response;
+    bool sent = 0;
+    uint8_t tries = 0;
     
     h_pos = percent;
     
@@ -81,12 +143,27 @@ bool Head::move_v(uint8_t percent)
     data += h_pos;
     
     /* Package construction */
-    package = comm->make_pgk(data);
-    
-    /* 
-    for (int i=0; i < package.size(); i++)
-        std::cout << hex << (int)package[i] << std::endl; */
-        
+    package = comm->make_pgk(data);    
+
     /* Send data */
-    return comm->send_data(package);
+    while (response.size() != 6 && tries < 5){
+        response = comm->send_rcv_data(package, PGK_CMD_SIZE);
+        tries++;
+    }
+    sent = checkAck(package, response);
+
+    if (sent == false)
+        std::cerr << "Comm error <move_v>: " << (int)tries << std::endl;
+
+    return sent;
+}
+
+bool Head::checkAck(QByteArray package, QByteArray ackPackage){
+    //Compare all byte values. Ignore CheckSum
+    for (int i=0; i < (package.size() - 1); i++){
+
+        if (package[i] != ackPackage[i] && i != 2)
+            return false;
+    }
+    return true;
 }

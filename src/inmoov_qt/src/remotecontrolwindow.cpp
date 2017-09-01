@@ -122,10 +122,9 @@ void RemoteControlWindow::on_toolButtonIncrease_clicked(){
 
 void RemoteControlWindow::on_toolButtonDecrease_clicked(){  
         
-    QByteArray data;
-    
+    QByteArray data;    
     Head head(*comm);
-    
+
     int currentIndex = ui->comboBoxServoList->currentIndex();    
     int ServoId = ui->comboBoxServoList->itemData(currentIndex).toInt();
     
@@ -141,10 +140,10 @@ void RemoteControlWindow::on_toolButtonDecrease_clicked(){
         return;
     }
     
-    if (ServoId == 1)    
-        head.move_h(ServoPos[ServoId]);
+    if (ServoId == 1)
+       head.move_h(ServoPos[ServoId]);
     else
-        head.move_v(ServoPos[ServoId]);
+       head.move_v(ServoPos[ServoId]);
     
     
     //ui->dial->setValue(int(ServoPos[ServoId]));
@@ -184,7 +183,7 @@ void RemoteControlWindow::on_dialChanged(){
     package = comm->make_pgk(data);
             
     /* Send data */
-    comm->send_data(package);      
+    comm->send_data(package, 6);
             
 }
 
@@ -225,8 +224,9 @@ void RemoteControlWindow::on_pushButtonYes_clicked(){
  
 
 void RemoteControlWindow::on_pushButtonLed_clicked(){
-
+    /* Current on/off state */
     static uint8_t led = 0;
+   /* Robot head */
     Head head(*comm);
 
     if (!comm->isReady()){
@@ -242,35 +242,6 @@ void RemoteControlWindow::on_pushButtonLed_clicked(){
         led = 0;
         head.led_off();
     }
-
-
-    /* static uint8_t led = 0;
-
-	QByteArray data;
-	QByteArray package;
-
-	if (!comm->isReady()){
-		error_message->showMessage("Serial port is not open!");
-		return;
-	}
-
-	if (led == 0)        	
-            led = 1;
-	else
-            led = 0;
-
-        data += 0x14;
-	data += led;
-
-	package = comm->make_pgk(data);
-
-	comm->send_data(package);
-
-	for (int i=0; i < package.size(); i++){
-		std::cout << (unsigned int) package[i] << std::endl;
-	}
-
-        std::cout << "LED: " << (int)led << std::endl; */
 }
 
 
@@ -279,6 +250,11 @@ void RemoteControlWindow::on_pushButtonNo_clicked(){
     static bool on = false;
     /* Robot head */
     Head head(*comm);
+
+    if (!comm->isReady()){
+        error_message->showMessage("Serial port is not open!");
+        return;
+    }
 
     if (on == false){
         timer_no->setInterval(1000);
@@ -300,12 +276,17 @@ void RemoteControlWindow::onTimerYesTimeout(){
     /* Current side */
     static bool up = false;
 
+    if (!comm->isReady()){
+        error_message->showMessage("Serial port is not open!");
+        return;
+    }
+
     if (up == false){
-        head.move_h(100);
+        head.move_v(100);
         up = true;
     }
     else {
-        head.move_h(0);
+        head.move_v(0);
         up = false;
     }
 }
@@ -317,11 +298,11 @@ void RemoteControlWindow::onTimerNoTimeout(){
     static bool left = false;
 
     if (left == false){
-        head.move_v(100);
+        head.move_h(100);
         left = true;
     }
     else {
-        head.move_v(0);
+        head.move_h(0);
         left = false;
     }
 }

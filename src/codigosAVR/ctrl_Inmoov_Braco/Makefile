@@ -19,7 +19,7 @@ basp: ctrl_Inmoov_Braco.hex
 	/usr/bin/avrdude -pm328p -cusbasp -Uflash:w:ctrl_Inmoov_Braco.hex:a 
 
 arduino: ctrl_Inmoov_Braco.hex
-	/usr/bin/avrdude -pm328p -carduino -P/dev/ttyUSB0 -Uflash:w:ctrl_Inmoov_Braco.hex:a
+	/usr/bin/avrdude -pm328p -carduino -P/dev/ttyUSB1 -Uflash:w:ctrl_Inmoov_Braco.hex:a
 
 .PHONY: clean
 

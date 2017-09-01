@@ -149,6 +149,7 @@ int main(void)
 
 	// USART Configuration
 	usartConfig(USART_MODE_ASYNCHRONOUS, USART_BAUD_38400, USART_DATA_BITS_8, USART_PARITY_NONE, USART_STOP_BIT_SINGLE);
+    //usartConfig(USART_MODE_ASYNCHRONOUS, USART_BAUD_9600, USART_DATA_BITS_8, USART_PARITY_NONE, USART_STOP_BIT_SINGLE);
 	usartEnableReceiver();
 	usartEnableTransmitter();
 	usartActivateReceptionCompleteInterrupt();
@@ -254,11 +255,10 @@ int main(void)
 						usartTransmit(packageData[i++]);
 					}
 					break;
+
 				case 0x14:
 					packageAux[0] = packageData[0];
 					data = packageData[1];
-
-					/* TODO: * Send ACK	 */
 
 					if (data == 1){
 						setBit(PORTB,PB1);
@@ -275,6 +275,15 @@ int main(void)
 						clrBit(PORTD,PD3);
 						clrBit(PORTD,PD3);
 					}
+
+					packageAux[0] = packageData[0];		
+					packageAux[1] = packageData[1];
+					packageAux[2] = packageData[2];
+					packageSize = buildTransmitPackageData(packageData, packageAux, packageSize);
+					i=0;
+					//while(i<packageSize){
+					//	usartTransmit(packageData[i++]);
+					//}
 
 
 					break;

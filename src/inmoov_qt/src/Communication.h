@@ -34,6 +34,8 @@ private:
     QMutex mutex;
     
     QQueue<QByteArray> queue;
+
+    bool checkPackage(QByteArray package, QByteArray response);
         
 signals:
     void PackageReady(QByteArray package);
@@ -60,14 +62,14 @@ public:
     Communication(QSerialPort &serial_);
     
     void set_serial(SerialSettings p);    
-    bool send_data(QByteArray data);
+    bool send_data(QByteArray data, uint8_t ackSize);
     
-    QByteArray send_rcv_data(QByteArray data);
+    QByteArray send_rcv_data(QByteArray data, uint8_t ackSize);
     static QByteArray make_pgk(QByteArray data);
     
-    bool isReady() {return serial->isOpen(); };
-    bool SerialClose() {serial->close(); };
-    bool SerialOpen() { return serial->open(QIODevice::ReadWrite); };
+    bool isReady() {return serial->isOpen(); }
+    bool SerialClose() {serial->close(); }
+    bool SerialOpen() { return serial->open(QIODevice::ReadWrite); }
         
 };
 

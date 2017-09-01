@@ -30,7 +30,7 @@ signals:
     void SendData(QByteArray package);
            
 public:    
-    SensorWorker( ) {  };
+    SensorWorker( ) {  }
     
     uint8_t get_data(int n);    
 };
@@ -62,7 +62,7 @@ signals:
 public:
     SensorTread(Communication &comm_);
     
-    float get_sensorValue(int n) { return sensors_value[ n % 4]; };
+    float get_sensorValue(int n) { return sensors_value[ n % 4]; }
     
     
 };
