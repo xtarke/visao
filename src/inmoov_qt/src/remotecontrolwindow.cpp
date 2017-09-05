@@ -4,6 +4,7 @@
 #include "ui_remotecontrolwindow.h"
 #include "serialsettingsdialog.h"
 
+#include <QDebug>
 #include <QtTest/QSignalSpy>
 
 #include "Communication.h"
@@ -27,6 +28,8 @@ RemoteControlWindow::RemoteControlWindow(QWidget *parent,  Communication *comm_)
     
     timer_yes = new QTimer(this);
     timer_no = new QTimer(this);
+    timer_leftArm = new QTimer(this);
+    timer_rigtArm = new QTimer(this);
         
     sensors_thread = new SensorTread(*comm);
         
@@ -39,6 +42,9 @@ RemoteControlWindow::RemoteControlWindow(QWidget *parent,  Communication *comm_)
     
     connect(timer_no, SIGNAL(timeout()), this, SLOT(onTimerNoTimeout()));
     connect(timer_yes, SIGNAL(timeout()), this, SLOT(onTimerYesTimeout()));
+
+    connect(timer_leftArm, SIGNAL(timeout()), this, SLOT(onTimerLeftArmTimeout()));
+    connect(timer_rigtArm, SIGNAL(timeout()), this, SLOT(onTimerRightArmTimeout()));
 
 
     fillServoParameters();
@@ -145,7 +151,6 @@ void RemoteControlWindow::on_toolButtonDecrease_clicked(){
     else
        head.move_v(ServoPos[ServoId]);
     
-    
     //ui->dial->setValue(int(ServoPos[ServoId]));
 }
 
@@ -203,11 +208,15 @@ void RemoteControlWindow::update_servo_current(){
 }
 
 void RemoteControlWindow::on_pushButtonYes_clicked(){
-    
     /* Current on/off state */
     static bool on = false;
     /* Robot head */
     Head head(*comm);
+
+    if (!comm->isReady()){
+        error_message->showMessage("Serial port is not open!");
+        return;
+    }
 
     if (on == false){
         timer_yes->setInterval(1000);
@@ -305,4 +314,105 @@ void RemoteControlWindow::onTimerNoTimeout(){
         head.move_h(0);
         left = false;
     }
+}
+
+void RemoteControlWindow::on_pushButtonArmLeft_clicked(){
+    /* Current on/off state */
+    static bool on = false;
+
+    if (!comm->isReady()){
+        error_message->showMessage("Serial port is not open!");
+        return;
+    }
+
+    if (on == false){
+        timer_leftArm->setInterval(5000);
+        timer_leftArm->start();
+        on = true;
+        ui->pushButtonArmLeft->setChecked(true);
+    }else {
+        timer_leftArm->stop();
+        //head.move_v(50);
+        ui->pushButtonArmLeft->setChecked(false);
+        on = false;
+    }
+}
+
+
+void RemoteControlWindow::onTimerLeftArmTimeout(){
+    static bool left = false;
+    QByteArray data;
+    QByteArray package;
+    uint8_t move = 0;
+
+    /* Package head data */
+    data += 0x01;
+    data += (uint8_t)02;
+
+    if (left == false){
+        move = 0x00;
+        left = true;
+    }
+    else {
+        move = 0x64;
+        left = false;
+    }
+
+    data += move;
+    package = comm->make_pgk(data);
+
+    /* Send data */
+    comm->send_data(package, 6);
+
+}
+
+void RemoteControlWindow::on_pushButtonArmRight_clicked(){
+    /* Current on/off state */
+    static bool on = false;
+
+    if (!comm->isReady()){
+        error_message->showMessage("Serial port is not open!");
+        return;
+    }
+
+    if (on == false){
+        timer_rigtArm->setInterval(5000);
+        timer_rigtArm->start();
+        on = true;
+        ui->pushButtonArmRight->setChecked(true);
+    }else {
+        timer_rigtArm->stop();
+        //head.move_v(50);
+        ui->pushButtonArmRight->setChecked(false);
+        on = false;
+    }
+
+
+}
+
+
+void RemoteControlWindow::onTimerRightArmTimeout(){
+    static bool left = false;
+    QByteArray data;
+    QByteArray package;
+    uint8_t move = 0;
+
+    /* Package head data */
+    data += 0x01;
+    data += (uint8_t)03;
+
+    if (left == false){
+        move = 0x00;
+        left = true;
+    }
+    else {
+        move = 0x64;
+        left = false;
+    }
+
+    data += move;
+    package = comm->make_pgk(data);
+
+    /* Send data */
+    comm->send_data(package, 6);
 }

@@ -34,7 +34,7 @@ public:
     bool led_on();
     bool led_off();
 
-    Head(Communication &comm_) {comm = &comm_;};
+    Head(Communication &comm_) {comm = &comm_;}
 
     typedef enum ledState{
             ON = 1,

@@ -35,12 +35,17 @@ private slots:
     void on_pushButtonYes_clicked();
     void on_pushButtonNo_clicked();
     void on_pushButtonLed_clicked();
+    void on_pushButtonArmRight_clicked();
+    void on_pushButtonArmLeft_clicked();
     
     void on_dialChanged();    
     void update_servo_current();
 
     void onTimerYesTimeout();
     void onTimerNoTimeout();
+
+    void onTimerLeftArmTimeout();
+    void onTimerRightArmTimeout();
 
 
 private:
@@ -53,6 +58,9 @@ private:
     
     QTimer *timer_yes;
     QTimer *timer_no;
+
+    QTimer *timer_leftArm;
+    QTimer *timer_rigtArm;
 
     SensorTread *sensors_thread;
     

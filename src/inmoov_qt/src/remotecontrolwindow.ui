@@ -188,6 +188,26 @@
     </widget>
    </item>
    <item>
+    <widget class="QPushButton" name="pushButtonArmLeft">
+     <property name="text">
+      <string>ArmLeft</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButtonArmRight">
+     <property name="text">
+      <string>ArmRight</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4"/>
    </item>
   </layout>

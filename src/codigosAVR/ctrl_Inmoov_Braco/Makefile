@@ -1,10 +1,10 @@
 CC = avr-gcc
-CFLAGS = -Wall -Os -fpack-struct -fshort-enums -ffunction-sections -fdata-sections -std=gnu99 -funsigned-char -funsigned-bitfields -mmcu=atmega328p -DF_CPU=16000000UL -MMD -MP 
+CFLAGS = -Wall -Os -fpack-struct -fshort-enums -ffunction-sections -fdata-sections -std=gnu99 -funsigned-char -funsigned-bitfields -mmcu=atmega328p -DF_CPU=20000000UL -MMD -MP 
 LDLIBS = 
 LDFLAGS = -mmcu=atmega328p
 
-DEPS = globalDefines.h ctrl_Inmoov_Braco.h ATmega328.h
-OBJ = ctrl_Inmoov_Braco.o ATmega328.c
+DEPS = globalDefines.h ctrl_Inmoov_Braco.h ATmega328.h comm.h hardware.h
+OBJ = ctrl_Inmoov_Braco.o ATmega328.c comm.c
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
