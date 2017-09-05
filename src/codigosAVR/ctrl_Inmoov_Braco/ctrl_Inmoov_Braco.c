@@ -28,7 +28,8 @@
 
 #include "globalDefines.h"
 #include "ATmega328.h"
-#include "ctrl_Inmoov_Braco.h"
+#include "hardware.h"
+#include "comm.h"
 
 #include <string.h>
 
@@ -281,9 +282,9 @@ int main(void)
 					packageAux[2] = packageData[2];
 					packageSize = buildTransmitPackageData(packageData, packageAux, packageSize);
 					i=0;
-					//while(i<packageSize){
-					//	usartTransmit(packageData[i++]);
-					//}
+					while(i<packageSize){
+						usartTransmit(packageData[i++]);
+					}
 
 
 					break;
