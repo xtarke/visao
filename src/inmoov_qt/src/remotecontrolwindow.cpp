@@ -266,7 +266,7 @@ void RemoteControlWindow::on_pushButtonNo_clicked(){
     }
 
     if (on == false){
-        timer_no->setInterval(1000);
+        timer_no->setInterval(3000);
         timer_no->start();
         on = true;
         ui->pushButtonNo->setChecked(true);
@@ -307,11 +307,11 @@ void RemoteControlWindow::onTimerNoTimeout(){
     static bool left = false;
 
     if (left == false){
-        head.move_h(100);
+        head.move_h(75);
         left = true;
     }
     else {
-        head.move_h(0);
+        head.move_h(25);
         left = false;
     }
 }
@@ -350,7 +350,7 @@ void RemoteControlWindow::onTimerLeftArmTimeout(){
     data += (uint8_t)02;
 
     if (left == false){
-        move = 0x00;
+        move = 0x10;
         left = true;
     }
     else {
@@ -402,7 +402,7 @@ void RemoteControlWindow::onTimerRightArmTimeout(){
     data += (uint8_t)03;
 
     if (left == false){
-        move = 0x00;
+        move = 0x10;
         left = true;
     }
     else {

@@ -380,7 +380,7 @@ void inmoov_qt::on_pushButtonHeadTracking_clicked()
         frame_1 = singleCamera.get_Frame();       
         frame_1 = faces.detect(frame_1, &pos);
         
-        imshow("frame", frame_1); 
+      	imshow("frame", frame_1); 
         
         if (pos.detected == true) {
 
@@ -430,7 +430,7 @@ void inmoov_qt::on_pushButtonHeadTracking_clicked()
              head.led_off();
                    
         //wait for a key for 30ms: should be called render images on imshow();
-        key = (char) waitKey(60);
+        key = (char) waitKey(30);
 
         if (key == 'q' || key == 'Q') break;
 
