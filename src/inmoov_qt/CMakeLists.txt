@@ -6,13 +6,15 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
 
+add_compile_options(-std=c++11)
+
 # Find the QtWidgets library
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 # find_package(QtSerialPort REQUIRED)
 # find_package(OpenCV REQUIRED)
 
-find_package(OpenCV REQUIRED PATHS "/opt/opencv/")
+find_package(OpenCV REQUIRED PATHS "/opt/opencv3/")
 
 set(inmoov_qt_SRC
   src/main.cpp
