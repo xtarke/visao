@@ -334,6 +334,7 @@ void inmoov_qt::on_pushButtonHeadTracking_clicked()
     ui->pushButtonRelesCams->setDisabled(true);  
     ui->pushButtonFaceDetect->setDisabled(true);
     ui->pushButtonTestDisparity->setDisabled(true);
+    ui->pushButtonHeadTracking->setDisabled(true);
     
     String camera_id = ui->lineEditSingleCam->text().toUtf8().constData();        
     SingleCapture singleCamera(std::stoi(camera_id), 640, 480);
@@ -444,7 +445,8 @@ void inmoov_qt::on_pushButtonHeadTracking_clicked()
     ui->pushButtonRelesCams->setDisabled(false);
     ui->pushButtonFaceDetect->setDisabled(false);
     ui->pushButtonTestDisparity->setDisabled(false);
-    
+    ui->pushButtonHeadTracking->setDisabled(false);
+
     singleCamera.stop_cam();
 }
 
